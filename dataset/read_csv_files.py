@@ -19,7 +19,7 @@ def read_csv_with_label(name):
             list.append(row)
     return list[1:]
 
-def add_labels_dictionary(listitem):
+def add_label_dictionary(listitem):
     list = []
     list.append({"id":listitem[0]})
     list.append({"init_date":listitem[1]})
