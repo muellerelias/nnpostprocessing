@@ -5,8 +5,8 @@ In this project we aim to elucidate if there is an additional value in using for
 
 ## Requirements
 
--python 3
--pip3
+- python 3
+- pip3
 
 ## Installation
 
