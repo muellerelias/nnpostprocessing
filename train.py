@@ -1,6 +1,13 @@
-import tensorflow
+import numpy as np
+import os
+import time
+
+import tensorflow as tf
 import dataset.read_csv_files as provider
 
 data = provider.read_csv('ecmwf_PF_03_240.csv')
-print(data[0])
-print(provider.add_label_dictionary(data[0]))
+
+
+data1 = provider.filterCountry(data, 'Germany')
+
+print(data1[505])

@@ -55,7 +55,9 @@ def add_label_dictionary(listitem):
     list.append({"BL":listitem[31]})
     list.append({"GL":listitem[32]})
     return list
- 
+
+def filterCountry(data, country):
+    return list(filter(lambda x: True if x[2]==country else False, data))
 
 def main():
     read_csv('ecmwf_PF_03_240.csv')
