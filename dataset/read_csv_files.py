@@ -1,7 +1,7 @@
 import csv
 import os
+from datetime import date, datetime, timedelta
 from itertools import groupby
-from datetime import datetime, date, timedelta  
 
 path='/home/elias/Nextcloud/1.Masterarbeit/Daten/2020_MA_Elias'
 
@@ -87,7 +87,7 @@ def get_labes_by_country(data, id):
     return resultlist
 
 def get_labes(data, id):
-    i=data[id][1]
+    i=data[id]
     start = datetime.strptime(i[1], '%Y-%m-%d').date()
     end = start +timedelta(days=10)
     return [i[2], start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d"), i[3], i[4], i[5], i[6]]
