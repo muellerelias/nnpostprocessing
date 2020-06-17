@@ -5,6 +5,13 @@ from datetime import datetime, date, timedelta
 
 path='/home/elias/Nextcloud/1.Masterarbeit/Daten/2020_MA_Elias'
 
+"""
+#####
+This file is used to read and convert the data from the CSV file. 
+#####
+"""
+
+
 def read_csv(name):
     list = []
     with open(os.path.join(path, name ), newline='') as csvfile:
