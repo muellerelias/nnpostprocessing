@@ -69,34 +69,21 @@ def add_label_dictionary(listitem):
 def filter_country(data, country):
     return list(filter(lambda x: True if x[2]==country else False, data))
 
-def get_labes_by_country(data, id, days):
+def get_labes_by_country(data, id):
     countries=[]
     for key, group in groupby(sorted(data, key=lambda x: x[2]), lambda x: x[2]):
         countries.append(list(group))
     resultlist = []
     for country in countries:
-        result_country = get_labes(country, id, days)
+        result_country = get_labes(country, id)
         resultlist.append(result_country)
     return resultlist
 
-def get_labes(data, id, days):
-    start = datetime.strptime(data[id][1], '%Y-%m-%d').date()
-    dates = []
-    date = start
-    for i in range(days):
-        dates.append(date.strftime("%Y-%m-%d"))
-        date = date +timedelta(days=1)
-    filterddata = list(filter(lambda x: True if x[1] in dates else False, data))
-    T2M = 0 
-    U10M = 0
-    V10M = 0 
-    RTOT = 0
-    for i in  filterddata:
-        T2M  += i[3]
-        U10M += i[4]
-        V10M += i[5]
-        RTOT += i[6]
-    return [i[2], start.strftime("%Y-%m-%d"), date.strftime("%Y-%m-%d"),  T2M/len(filterddata), U10M/len(filterddata), V10M/len(filterddata), RTOT]
+def get_labes(data, id):
+    i=data[id][1]
+    start = datetime.strptime(i[1], '%Y-%m-%d').date()
+    end = start +timedelta(days=10)
+    return [i[2], start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d"), i[3], i[4], i[5], i[6]]
 
 def main():
     read_csv('ecmwf_PF_03_240.csv')
