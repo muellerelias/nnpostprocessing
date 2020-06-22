@@ -1,15 +1,16 @@
-##
+# Protokolle
 
-#17.06.2020
-- Ersten 8 Jahre Trianing
+
+##17.06.2020
+- Ersten 8 Jahre Training
 - 4 Jahre Validierung
 - 4 Jahre Test
 
-#ToDo
+###ToDo
 - modelle
 - erst nur deutschland
 - sinus tranformation = init + 10 Tage
 -- betrag zum mittleren Tag des jarhes
 
-#Daten
+###Daten
 - Die gemesten werte sind in 10 Tagen
