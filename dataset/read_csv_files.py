@@ -3,7 +3,6 @@ import os
 from datetime import date, datetime, timedelta
 from itertools import groupby
 
-path='/home/elias/Nextcloud/1.Masterarbeit/Daten/2020_MA_Elias'
 
 """
 #####
@@ -12,13 +11,13 @@ This file is used to read and convert the data from the CSV file.
 """
 
 
-def read_csv(name):
+def read_csv(path):
     list = []
-    with open(os.path.join(path, name ), newline='') as csvfile:
+    with open(path, newline='') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
         rownr = 0
         for row in spamreader:
-            if rownr is not 0:
+            if rownr != 0:
                 for i in range(len(row)):
                     if i==0:
                         row[i]=int(row[i])
@@ -26,15 +25,15 @@ def read_csv(name):
                         row[i]=float(row[i])
                 list.append(row)
             rownr+=1
-    return list[1:]
+    return list
 
-def read_csv_with_title(name):
+def read_csv_with_title(path):
     list = []
-    with open(os.path.join(path, name ), newline='') as csvfile:
+    with open(path, newline='') as csvfile:
         spamreader = csv.DictReader(csvfile, delimiter=',', quotechar='|')
         for row in spamreader:
             list.append(row)
-    return list[1:]
+    return list
 
 def add_label_dictionary(listitem):
     list = []
@@ -93,7 +92,7 @@ def get_labes(data, id):
     return [i[2], start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d"), i[3], i[4], i[5], i[6]]
 
 def main():
-    read_csv('ecmwf_PF_03_240.csv')
+    read_csv('/home/elias/Nextcloud/1.Masterarbeit/Daten/2020_MA_Elias/ecmwf_PF_03_240.csv')
 
 if __name__ == "__main__":
     main()

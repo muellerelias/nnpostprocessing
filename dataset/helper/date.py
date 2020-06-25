@@ -9,5 +9,3 @@ def convert_date(date, type='linear'):
         return abs((2*day/all) -1)
     if type == 'sinus':
         return abs(round(math.sin((day/all)*math.pi), 15))
-
-print(convert_date('2009-12-01', 'sinus'))
