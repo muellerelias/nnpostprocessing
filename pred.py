@@ -7,16 +7,18 @@ import numpy as np
 
 def main():
     # get the data
-    #data = dataset.read('/home/elias/Nextcloud/1.Masterarbeit/Daten/2020_MA_Elias/ecmwf_*_240.csv')
+    data = dataset.read('/home/elias/Nextcloud/1.Masterarbeit/Daten/2020_MA_Elias/ecmwf_*_240.csv')
 
     # get the shape
-    #shape_vec, shape_mat, shape_out = dataset.shape(data[1])
+    shape_vec, shape_mat, shape_out = dataset.shape(data[1])
 
     # building the model
     pred2 = np.zeros((11,19))
     pred1 = np.zeros(9)
-    model = modelprovider.build_multi_input_model(pred1.shape, pred2.shape, pred1.shape)
-    utils.plot_model(model, "my_first_model_with_shape_info.png", show_shapes=True)
+    #model = modelprovider.build_multi_input_model(pred1.shape, pred2.shape, pred1.shape)
+    model = modelprovider.build_multi_input_model(shape_vec, shape_mat, shape_out)
+
+    utils.plot_model(model, "my_model.png", show_shapes=True)
 
     opt = Adam(lr=1e-3, decay=1e-3 / 200)
     
@@ -28,7 +30,6 @@ def main():
     # run the model
     prediction = model.predict([pred1[np.newaxis, :],pred2[np.newaxis, :]])
     print(prediction)
-    #print(len(prediction[0]))
 
 if __name__ == "__main__":
     main()
