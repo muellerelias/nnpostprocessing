@@ -26,7 +26,7 @@ def main():
     # pred = [data[1][0].transpose(), data[1][1]]
     # pred = [data[1][0], data[1][1]]
     # run the model
-    prediction = model.predict([pred1.reshape((1, 9)),pred2.reshape((1, 11, 19))])
+    prediction = model.predict([pred1[np.newaxis, :],pred2[np.newaxis, :]])
     print(prediction)
     #print(len(prediction[0]))
 
