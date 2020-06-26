@@ -15,18 +15,17 @@ def main():
     # building the model
     pred2 = np.zeros((11,19))
     pred1 = np.zeros(9)
-    #model = modelprovider.build_multi_input_model(pred1.shape, pred2.shape, pred1.shape)
+
+    # Loading the model
     model = modelprovider.build_multi_input_model(shape_vec, shape_mat, shape_out)
 
+    # Plot the model
     utils.plot_model(model, "my_model.png", show_shapes=True)
 
-    opt = Adam(lr=1e-3, decay=1e-3 / 200)
-    
     # compiling the model
+    opt = Adam(lr=1e-3, decay=1e-3 / 200)
     model.compile(loss="mean_absolute_percentage_error", optimizer=opt)
 
-    # pred = [data[1][0].transpose(), data[1][1]]
-    # pred = [data[1][0], data[1][1]]
     # run the model
     prediction = model.predict([pred1[np.newaxis, :],pred2[np.newaxis, :]])
     print(prediction)

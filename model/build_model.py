@@ -10,14 +10,18 @@ def build_multi_input_model(shape_vec, shape_mat, shape_out):
     Args: 
         shape_vec: Shape of the input vector
         shape_mat: Shape of the input matrix
+        shape_out: Shape of the output vector
     Returns:
         model: Keras model
     """
     
+    # first branch for the vector input
     inp1   = Input( shape = shape_vec )
     model1 = Dense( 9, activation="relu" )( inp1 )
     model1 = Model( inp1, model1 )
 
+
+    # second branch for the matrix input
     inp2   = Input( shape=shape_mat )
     model2 = Dense( 10, activation="relu" )( inp2 )
     model2 = Dense( 5, activation="relu" )( model2 )
@@ -29,10 +33,7 @@ def build_multi_input_model(shape_vec, shape_mat, shape_out):
     
     ## add the hiddden layers
     x = Dense(25, activation="relu")(combined)
-    ## x = Dense(15, activation="relu")(x)
-    ## x = Dense(10, activation="relu")(x)
     x = Dense(4, activation="relu")(x)
 
     # returns the Model
-    #return Model(inputs=[model2.input, model2.input], outputs=[model2.output , model2.output])
     return Model([model1.input, model2.input], outputs=x)

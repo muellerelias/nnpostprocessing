@@ -11,6 +11,19 @@ from .helper.country import convert_country
 
 
 def read(filepath):
+      """return the list of data
+      where the output is an array of [input_vec , input_mat , output_vec]
+      Returns:
+      Args: 
+            filepath: is the where the .csv files are stored
+      Returns:
+            return: [[
+                        shape_vec: Shape of the input vector
+                        shape_mat: Shape of the input matrix
+                        shape_out: Shape of the output vector
+                    ]]
+      """
+      
       fileglob = glob.glob(filepath) 
       files = []
       print('Read data from: '+filepath+'...')
@@ -44,6 +57,14 @@ def main():
       print(read('/home/elias/Nextcloud/1.Masterarbeit/Daten/2020_MA_Elias/ecmwf_*_240.csv')[1])
 
 def shape(item):
+      """return the shape of data inputs
+      Args: 
+            item: is an array of [input_vec , input_mat , output_vec]
+      Returns:
+            shape_vec: Shape of the input vector
+            shape_mat: Shape of the input matrix
+            shape_out: Shape of the output vector
+      """
       return (item[0].shape, item[1].shape, item[2].shape)
 
 if __name__ == "__main__":
