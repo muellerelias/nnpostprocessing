@@ -32,14 +32,11 @@ def main(path):
     model.compile(loss="mean_absolute_percentage_error", optimizer=opt)
 
     # run the model
-    prediction = []
     for item in data[:10]:
-        pred1 = item[0]
-        pred2 = item[1]
-        prediction.append(model.predict([pred1[np.newaxis, :],pred2[np.newaxis, :]]))
-    
-    for item in prediction:
-        print(item)
+        input1 = item[0]
+        input2 = item[1]
+        model.fit([input1[np.newaxis, :],input2[np.newaxis, :]])
+
 
 if __name__ == "__main__":
     main(args.filepath)

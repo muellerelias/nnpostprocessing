@@ -1,6 +1,7 @@
 import model.build_model as modelprovider
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras import utils
+import tensorflow as tf
 import dataset.provider as dataset
 import numpy as np
 import argparse
@@ -34,10 +35,11 @@ def main(path):
     # run the model
     prediction = []
     for item in data[:10]:
-        pred1 = item[0]
-        pred2 = item[1]
-        prediction.append(model.predict([pred1[np.newaxis, :],pred2[np.newaxis, :]]))
-    
+        input1 = item[0]
+        input2 = item[1]
+        prediction.append(model.predict([input1[np.newaxis, :], input2[np.newaxis, :]]))
+    tf.nn.softmax(prediction)
+
     for item in prediction:
         print(item)
 
