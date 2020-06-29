@@ -3,18 +3,23 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras import utils
 import dataset.provider as dataset
 import numpy as np
+import argparse
+import os
 
 
-def main():
+parser = argparse.ArgumentParser(description='This is the inference script')
+
+parser.add_argument("--dataset", dest="filepath", required=True,
+        help="folder where the dataset is", metavar="FILE", default='/home/elias/Nextcloud/1.Masterarbeit/Daten/2020_MA_Elias/')
+
+args = parser.parse_args()
+
+def main(path):
     # get the data
-    data = dataset.read('/home/elias/Nextcloud/1.Masterarbeit/Daten/2020_MA_Elias/ecmwf_*_240.csv')
+    data = dataset.read(os.path.join(path+'ecmwf_*_240.csv'))
 
     # get the shape
     shape_vec, shape_mat, shape_out = dataset.shape(data[1])
-
-    # building the model
-    pred2 = np.zeros((11,19))
-    pred1 = np.zeros(9)
 
     # Loading the model
     model = modelprovider.build_multi_input_model(shape_vec, shape_mat, shape_out)
@@ -27,8 +32,14 @@ def main():
     model.compile(loss="mean_absolute_percentage_error", optimizer=opt)
 
     # run the model
-    prediction = model.predict([pred1[np.newaxis, :],pred2[np.newaxis, :]])
-    print(prediction)
+    prediction = []
+    for item in data[:10]:
+        pred1 = item[0]
+        pred2 = item[1]
+        prediction.append(model.predict([pred1[np.newaxis, :],pred2[np.newaxis, :]]))
+    
+    for item in prediction:
+        print(item)
 
 if __name__ == "__main__":
-    main()
+    main(args.filepath)

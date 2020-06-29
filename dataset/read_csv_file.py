@@ -10,7 +10,6 @@ This file is used to read and convert the data from the CSV file.
 #####
 """
 
-
 def read_csv(path):
     list = []
     with open(path, newline='') as csvfile:
