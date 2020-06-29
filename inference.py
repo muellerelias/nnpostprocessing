@@ -26,11 +26,7 @@ def main(path):
     model = modelprovider.build_multi_input_model(shape_vec, shape_mat, shape_out)
 
     # Plot the model
-    utils.plot_model(model, "my_model.png", show_shapes=True)
-
-    # compiling the model
-    opt = Adam(lr=1e-3, decay=1e-3 / 200)
-    model.compile(loss="mean_absolute_percentage_error", optimizer=opt)
+    #utils.plot_model(model, "my_model.png", show_shapes=True)
 
     # run the model
     prediction = []

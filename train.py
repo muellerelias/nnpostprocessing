@@ -1,6 +1,7 @@
 import model.build_model as modelprovider
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam, SGD
 from tensorflow.keras import utils
+import tensorflow as tf
 import dataset.provider as dataset
 import numpy as np
 import argparse
@@ -24,18 +25,17 @@ def main(path):
     # Loading the model
     model = modelprovider.build_multi_input_model(shape_vec, shape_mat, shape_out)
 
-    # Plot the model
-    utils.plot_model(model, "my_model.png", show_shapes=True)
-
     # compiling the model
-    opt = Adam(lr=1e-3, decay=1e-3 / 200)
+    opt = SGD(lr=1e-3)
     model.compile(loss="mean_absolute_percentage_error", optimizer=opt)
 
+    # train the model
+
     # run the model
-    for item in data[:10]:
-        input1 = item[0]
-        input2 = item[1]
-        model.fit([input1[np.newaxis, :],input2[np.newaxis, :]])
+
+    print("[INFO] training model...")
+    # Training the model
+    model.fit(x=[input1,input2], y=label, epochs=1, batch_size=1)
 
 
 if __name__ == "__main__":
