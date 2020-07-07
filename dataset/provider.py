@@ -4,18 +4,19 @@ import numpy as np
 import tensorflow as tf
 
 import glob
-from .read_csv_file import read_csv
+from .read_csv_file import read_csv, filter_country
 
 from .helper.date import convert_date
 from .helper.country import convert_country
 
 
-def read(filepath):
+def read(filepath, country=None):
       """return the list of data
       where the output is an array of [input_vec , input_mat , output_vec]
       Returns:
       Args: 
             filepath: is the where the .csv files are stored
+            country: filter by country
       Returns:
             return: [[
                         shape_vec: Shape of the input vector
@@ -28,7 +29,10 @@ def read(filepath):
       files = []
       print('Read data from: '+filepath+'...')
       for csvfile in fileglob:
-            files.append(read_csv(csvfile))
+            if (country):
+                  files.append(filter_country(read_csv(csvfile), country))
+            else:
+                  files.append(read_csv(csvfile))
       print('finished reading data')
 
       print('Proccessing data...')

@@ -14,3 +14,9 @@
 
 ###Daten
 - Die gemesten werte sind in 10 Tagen
+
+## 29.06.2020
+- Trainieren hinbekommen
+- Output paramenter
+-- Loss function
+-- Temperatur

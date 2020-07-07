@@ -1,6 +1,6 @@
 from tensorflow.keras.layers import Activation, Dense, Input, Concatenate, Flatten, InputLayer
 from tensorflow.keras.models import Model, Sequential
-
+import tensorflow as tf
 """
 Example: https://www.pyimagesearch.com/2019/02/04/keras-multiple-inputs-and-mixed-data/
 """
@@ -17,23 +17,26 @@ def build_multi_input_model(shape_vec, shape_mat, shape_out):
     
     # first branch for the vector input
     inp1   = Input( shape = shape_vec )
-    model1 = Dense( 9, activation="relu" )( inp1 )
+    model1 = Dense( 9, activation='linear' )( inp1 )
     model1 = Model( inp1, model1 )
 
 
     # second branch for the matrix input
     inp2   = Input( shape=shape_mat )
-    model2 = Dense( 10, activation="relu" )( inp2 )
-    model2 = Dense( 5, activation="relu" )( model2 )
-    model2 = Flatten()(model2)
+    #model2 = Dense( 10, activation="relu", kernel_initializer='random_normal', bias_initializer='zeros' )( inp2 )
+    model2 = Flatten()( inp2 )#(model2)
+    model2 = Dense( 11, activation='linear')( model2 )
     model2 = Model( inp2,model2 )
     
     ## concatenate the two inputs
     combined = Concatenate(axis=1)([model1.output, model2.output])
     
     ## add the hiddden layers
-    x = Dense(25, activation="relu")(combined)
-    x = Dense(4, activation="relu")(x)
+    # x = Dense(25, activation="relu", kernel_initializer='random_normal', bias_initializer='zeros')(combined)
+    x = Dense(2, activation='linear')(combined)#(x)
 
     # returns the Model
     return Model([model1.input, model2.input], outputs=x)
+
+def printModel(model):
+    tf.keras.utils.plot_model( model, to_file='my_model.png', show_shapes=True, show_layer_names=True, rankdir='TB', expand_nested=False, dpi=96)
