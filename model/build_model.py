@@ -24,7 +24,7 @@ def build_multi_input_model(shape_vec, shape_mat, shape_out):
     # second branch for the matrix input
     inp2   = Input( shape=shape_mat )
     model2 = Flatten()( inp2 )#(model2)
-    model2 = Dense( 22, activation='linear')( model2 )
+    model2 = Dense( 38, activation='linear')( model2 )
     model2 = Model( inp2,model2 )
     
     ## concatenate the two inputs
