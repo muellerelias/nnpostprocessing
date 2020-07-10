@@ -1,13 +1,15 @@
+from datetime import datetime
+import glob
 import os
 import pathlib
+
 import numpy as np
+import pandas as pd
 import tensorflow as tf
 
-import glob
-from .read_csv_file import read_csv, filter_country
-
-from .helper.date import convert_date
 from .helper.country import convert_country
+from .helper.date import convert_date
+from .read_csv_file import filter_country, read_csv
 
 
 def read(filepath, country=None):
@@ -27,6 +29,8 @@ def read(filepath, country=None):
       
       fileglob = glob.glob(filepath) 
       files = []
+
+
       print('Read data from: '+filepath+'...')
       for csvfile in fileglob:
             if (country):
@@ -34,7 +38,6 @@ def read(filepath, country=None):
             else:
                   files.append(read_csv(csvfile))
       print('finished reading data')
-
       print('Proccessing data...')
       data = []
 

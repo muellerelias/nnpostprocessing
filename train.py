@@ -57,7 +57,7 @@ def main(path=None, numpy=None, modelpath=None):
     lr = 0.01
     opt = SGD(lr=lr)
     model.compile(loss = lossfn, optimizer = opt)
-    model.fit(x=input, y=label, epochs=1, batch_size=5)
+    model.fit(x=input, y=label, epochs=1, batch_size=500)
     
     print('Test score:', model.evaluate(x=input, y=label, batch_size=4000, verbose=0 ))
 

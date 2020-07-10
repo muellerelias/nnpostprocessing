@@ -20,3 +20,8 @@
 - Output paramenter
 -- Loss function
 -- Temperatur
+
+## 07.07.2020
+- X_train = (X_train - X_train.mean()) / X_train.std()
+- https://github.com/waves2weather/W2W-ML-Workshop/blob/master/nb1_jupyter-pandas_solution.ipynb
+- https://github.com/slerch/ppnn/blob/master/nn_postprocessing/nn_src/utils.py
