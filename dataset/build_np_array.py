@@ -37,22 +37,22 @@ def main(args):
         valid_set.append(df[(df['init date'] > '2009-01-01') & (df['init date'] < '2012-12-31')].to_numpy())
         test_set.append(df[(df['init date'] > '2013-01-01') & (df['init date'] < '2017-12-31')].to_numpy())
     
-    #print('[info] starting calculating mean and std...')
-    ## calculate mean and std
-    #train_set_all = pd.concat(train_set_all, axis=0)
-    #train_mean = train_set_all.mean()
-    #train_std = train_set_all.std()
-    #
-    #train_mean = train_mean.to_numpy()
-    #train_std = train_std.to_numpy()
-#
-    ##save the mean and std
-    #np.save(os.path.join(args.np_dir, 'train_mean.npy'), train_mean)
-    #np.save(os.path.join(args.np_dir, 'train_std.npy'), train_std)
-    
-    train_mean = np.load(os.path.join(args.np_dir, 'train_mean.npy'))
-    train_std  = np.load(os.path.join(args.np_dir, 'train_std.npy'))
+    print('[info] starting calculating mean and std...')
+    # calculate mean and std
+    train_set_all = pd.concat(train_set_all, axis=0).to_numpy()
+    train_set_numpy = []
 
+    for item in train_set_all:
+        train_set_numpy.append(item[2:])
+
+    train_set_all = np.array(train_set_numpy, dtype='float64')
+    train_mean = train_set_all.mean(axis=0)
+    train_std = train_set_all.std(axis=0)
+
+    #save the mean and std
+    np.save(os.path.join(args.np_dir, 'train_mean.npy'), train_mean)
+    np.save(os.path.join(args.np_dir, 'train_std.npy'), train_std)
+    
     print('[info] starting normalizing and transforming to model tensor...')
     train_set = convert_to_model_data(train_set, train_mean, train_std)
     valid_set = convert_to_model_data(valid_set, train_mean, train_std)
@@ -77,12 +77,15 @@ def convert_to_model_data(set, mean, std):
         vector_data = (set[0][i][25:32]-mean[23:30])/std[23:30]
         vector = np.array(np.append([date, country ], vector_data), dtype='float64')
         #second element are the esamlple
-        matrix = []
+        matrix_data = []
         for file in set:
-                matrix.append((file[i][6:25]-mean[4:23])/std[4:23])
+                matrix_data.append((file[i][6:25]-mean[4:23])/std[4:23])
+        
+        matrix_data = np.array(matrix_data,dtype='float64')
+        matrix = np.array([matrix_data.mean(axis=0) , matrix_data.std(axis=0)], dtype='float64')
         label=np.array((np.array(set[0][i][2:6])-mean[0:4])/std[0:4], dtype='float64')
         row.append(vector)
-        row.append(np.array(matrix,dtype='float64'))
+        row.append(matrix)
         row.append(label)
         data.append(row)
     print('finished processing data')
