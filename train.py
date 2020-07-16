@@ -7,7 +7,8 @@ import tensorflow as tf
 from tensorflow.keras import utils
 from tensorflow.keras.optimizers import SGD, Adam
 
-import dataset.provider as dataset
+import dataset.helper.crps as crps
+import dataset.shape as shape
 import model.build_model as modelprovider
 import model.loss_functions as loss
 
@@ -29,7 +30,7 @@ def main(args):
     test_data = np.load(os.path.join(args.numpy_path, 'test_set.npy'), allow_pickle=True)
     
     # get the shape
-    shape_vec, shape_mat, shape_out = dataset.shape(train_data[1])
+    shape_vec, shape_mat, shape_out = shape.shape(train_data[1])
 
     # Loading the model
     model = modelprovider.build_multi_input_model(shape_vec, shape_mat, shape_out)
@@ -37,13 +38,15 @@ def main(args):
 
     # compiling the model
     lossfn = loss.crps_cost_function 
-    lr = 0.07
+    lr = 0.007
     opt = Adam(lr=lr)
     model.compile(loss = lossfn, optimizer = opt)
 
     # Training the model
-    for i in range(5):
-        batches = np.array_split(np.random.shuffle(train_data), 100)
+    for i in range(10):
+        print('[INFO] Starting epoch: '+str(i))
+        np.random.shuffle(train_data)
+        batches = np.array_split(train_data, 10)
         for batch in batches:
             input = []
             label = []
@@ -52,6 +55,10 @@ def main(args):
                 label.append(item[2][np.newaxis, :])
             model.fit(x=input, y=label, epochs=1, batch_size=len(batch))
     
+    print('[INFO] Finished training')
+    end = datetime.now()
+    print(end-start)
+
     # Train the model
     print("[INFO] training model...")
     
@@ -63,12 +70,14 @@ def main(args):
         label.append(item[2][np.newaxis, :])
     print('Test score:', model.evaluate(x=input, y=label, batch_size=4000, verbose=0 ))
 
+    np.random.shuffle(test_data)
     print("[INFO] predict data...")
-    for item in test_data[50:55]:
+    for item in test_data[:10]:
         input1 = item[0]
         input2 = item[1]
-        print(item[2][:1])
+        print([item[2][0], item[3]])
         prediction = model.predict([input1[np.newaxis, :], input2[np.newaxis, :]])
+        prediction.append(crps.norm(item[2][:1], prediction))
         print(prediction)
     end = datetime.now()
     print(end-start)

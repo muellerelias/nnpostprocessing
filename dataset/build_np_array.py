@@ -10,7 +10,7 @@ import tensorflow as tf
 
 from helper.country import convert_country
 from helper.date import convert_date
-from read_csv_file import filter_country, read_csv
+import helper.crps as crps
 
 parser = argparse.ArgumentParser(description='This is the inference script')
 
@@ -28,7 +28,7 @@ def main(args):
     train_set_all = []
     valid_set = []
     test_set  = []
-    print('[info] starting reading...')
+    print('[INFO] starting reading...')
     # read all data and concat the train set for mean and std
     for path in fileglob:
         df = pd.read_csv(path,  index_col=0)
@@ -37,7 +37,7 @@ def main(args):
         valid_set.append(df[(df['init date'] > '2009-01-01') & (df['init date'] < '2012-12-31')].to_numpy())
         test_set.append(df[(df['init date'] > '2013-01-01') & (df['init date'] < '2017-12-31')].to_numpy())
     
-    print('[info] starting calculating mean and std...')
+    print('[INFO] starting calculating mean and std...')
     # calculate mean and std
     train_set_all = pd.concat(train_set_all, axis=0).to_numpy()
     train_set_numpy = []
@@ -53,18 +53,18 @@ def main(args):
     np.save(os.path.join(args.np_dir, 'train_mean.npy'), train_mean)
     np.save(os.path.join(args.np_dir, 'train_std.npy'), train_std)
     
-    print('[info] starting normalizing and transforming to model tensor...')
+    print('[INFO] starting normalizing and transforming to model tensor...')
     train_set = convert_to_model_data(train_set, train_mean, train_std)
     valid_set = convert_to_model_data(valid_set, train_mean, train_std)
     test_set  = convert_to_model_data(test_set, train_mean, train_std)
 
-    print('[info] starting saving dataset split..')
+    print('[INFO] starting saving dataset split..')
     np.save(os.path.join(args.np_dir, 'train_set.npy'), train_set)
     np.save(os.path.join(args.np_dir, 'valid_set.npy'), valid_set)
     np.save(os.path.join(args.np_dir, 'test_set.npy'), valid_set)
     end = datetime.now()
     print(end-start)
-    print('Finished')
+    print('[INFO] Finished')
 
 
 def convert_to_model_data(set, mean, std):
@@ -79,16 +79,18 @@ def convert_to_model_data(set, mean, std):
         #second element are the esamlple
         matrix_data = []
         for file in set:
-                matrix_data.append((file[i][6:25]-mean[4:23])/std[4:23])
+            matrix_data.append((file[i][6:25]-mean[4:23])/std[4:23])
         
         matrix_data = np.array(matrix_data,dtype='float64')
         matrix = np.array([matrix_data.mean(axis=0) , matrix_data.std(axis=0)], dtype='float64')
         label=np.array((np.array(set[0][i][2:6])-mean[0:4])/std[0:4], dtype='float64')
+        Crps = crps.ensemble(label[0], matrix_data[:,16])
         row.append(vector)
         row.append(matrix)
         row.append(label)
+        row.append(Crps)
         data.append(row)
-    print('finished processing data')
+    print('[INFO] Finished processing data')
     return data
 
 
