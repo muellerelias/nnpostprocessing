@@ -9,8 +9,11 @@ from tensorflow.keras.optimizers import SGD, Adam
 
 import dataset.helper.crps as crps
 import dataset.shape as shape
+import helper as helpers
 import model.build_model as modelprovider
 import model.loss_functions as loss
+
+
 
 tf.config.threading.set_intra_op_parallelism_threads(44)
 
@@ -18,6 +21,12 @@ parser = argparse.ArgumentParser(description='This is the inference script')
 
 parser.add_argument("--data_numpy", dest="numpy_path",
         help="folder where the dataset is", metavar="FILE", default='/home/elias/Nextcloud/1.Masterarbeit/Daten/2020_MA_Elias/')
+
+parser.add_argument("--log_dir", dest="logdir",
+        help="folder where tensorboard prints the logs", metavar="FILE", default='/home/elias/Nextcloud/1.Masterarbeit/Tests/')
+
+parser.add_argument("--name", dest="name",
+        help="name of the experiment", default='test-default')
 
 args = parser.parse_args()
 
@@ -42,18 +51,37 @@ def main(args):
     opt = Adam(lr=lr)
     model.compile(loss = lossfn, optimizer = opt)
 
+    #setup Tensorboard
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=os.path.join(args.logdir, args.name))
+
+    # Valid set for training
+    v_input = []
+    v_label = []
+    np.random.shuffle(valid_data)
+    for item in valid_data[:50]:
+        v_input.append([item[0][np.newaxis, :],item[1][np.newaxis, :]])
+        v_label.append(item[2][np.newaxis, :])
+    v_set = (v_input , v_label)
+
     # Training the model
-    for i in range(10):
-        print('[INFO] Starting epoch: '+str(i))
-        np.random.shuffle(train_data)
-        batches = np.array_split(train_data, 10)
-        for batch in batches:
-            input = []
-            label = []
-            for item in batch:
-                input.append([item[0][np.newaxis, :],item[1][np.newaxis, :]])
-                label.append(item[2][np.newaxis, :])
-            model.fit(x=input, y=label, epochs=1, batch_size=len(batch))
+    print('[INFO] Starting training')
+    input = []
+    label = []
+    for item in train_data:
+        input.append([item[0][np.newaxis, :],item[1][np.newaxis, :]])
+        label.append(item[2][np.newaxis, :])
+    batchsize = 5000
+    steps = len(label)/batchsize
+    model.fit(
+            x=input, 
+            y=label, 
+            epochs=10, 
+            batch_size=batchsize,
+            steps_per_epoch = steps,   
+            validation_data=v_set,
+            callbacks=[tensorboard_callback],
+        )#            verbose=0,
+
     
     print('[INFO] Finished training')
     end = datetime.now()
@@ -62,12 +90,6 @@ def main(args):
     # Train the model
     print("[INFO] training model...")
     
-
-    input = []
-    label = []
-    for item in valid_data:
-        input.append([item[0][np.newaxis, :],item[1][np.newaxis, :]])
-        label.append(item[2][np.newaxis, :])
     print('Test score:', model.evaluate(x=input, y=label, batch_size=4000, verbose=0 ))
 
     np.random.shuffle(test_data)
@@ -77,11 +99,12 @@ def main(args):
         input2 = item[1]
         print([item[2][0], item[3]])
         prediction = model.predict([input1[np.newaxis, :], input2[np.newaxis, :]])
-        prediction.append(crps.norm(item[2][:1], prediction))
-        print(prediction)
+        print([prediction[0][0], prediction[0][1], crps.norm(item[2][0], prediction[0]) ])
     end = datetime.now()
     print(end-start)
     print('Finished')
 
 if __name__ == "__main__":
-    main(args)
+    helpers.mkdir_not_exists(os.path.join(args.logdir, args.name))
+    with tf.device("/cpu:0"):
+        main(args)
