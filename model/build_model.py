@@ -46,20 +46,18 @@ def printModel(model):
 def build_one_input_model(shape):
     """Build (and compile) multi input network.
     Args: 
-        shape_vec: Shape of the input vector
-        shape_mat: Shape of the input matrix
-        shape_out: Shape of the output vector
+        shape: Shape of the input vector
     Returns:
         model: Keras model
     """
 
     # first branch for the vector input
     inp = Input(shape=shape)
-    model = Dense(64, activation='linear')(inp)
-    model = Dense(32, activation='linear')(inp)
-    model = Dense(16, activation='linear')(model)
-    model = Dense( 8, activation='linear')(model)
-    model = Dense( 4, activation='linear')(model)
+    model = Dense(28, activation='linear')(inp)
+    #model = Dense(32, activation='linear')(inp)
+    #model = Dense(16, activation='linear')(model)
+    #model = Dense( 8, activation='linear')(model)
+    #model = Dense( 4, activation='linear')(model)
     model = Dense( 2, activation='linear')(model)
 
     # returns the Model

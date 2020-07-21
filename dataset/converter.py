@@ -44,3 +44,7 @@ def convert_numpy_to_multi_input_dataset(data, batchsize,  shuffle=None):
         dataset = dataset.batch(batchsize)
 
     return dataset
+
+def denormalize(pred, mean,  std):
+    return (pred[0]*std[0])+mean[0]
+    
