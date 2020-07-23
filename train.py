@@ -44,14 +44,16 @@ def main(args):
     test_data = helpers.load_data(args.numpy_path, 'test_set.npy')
 
     # convert the data
-    train_dataset, train_shape = converter.convert_numpy_to_one_input_dataset(
+    train_dataset, train_shape = converter.convert_numpy_to_emp_input_dataset(
         train_data, batchsize=args.batchsize, shuffle=100, shape=True)
-    valid_dataset = converter.convert_numpy_to_one_input_dataset(
+    valid_dataset = converter.convert_numpy_to_emp_input_dataset(
         valid_data, batchsize=args.batchsize, shuffle=100)
 
 
+    print(train_shape)
+
     # Loading the model
-    model = modelprovider.build_one_input_model(train_shape)
+    model = modelprovider.build_emb_model(train_shape)
     # Print Model
     modelprovider.printModel(model)
 
@@ -88,18 +90,18 @@ def main(args):
     end = datetime.now()
     print(end-start)
 
-    np.random.shuffle(test_data)
-    print("[INFO] predict data...")
-    mean = helpers.load_data(args.numpy_path, 'train_mean.npy')
-    std = helpers.load_data(args.numpy_path, 'train_std.npy')
-    for item in test_data[:100]:
-        input = np.concatenate((item[0], item[1][0], item[1][1]), axis=0)
-        prediction = model.predict([input[np.newaxis, :]])
-        label = converter.denormalize(item[2], mean,  std)
-        #print([item[2][0], label, item[3]])
-        pred = converter.denormalize(prediction[0], mean,  std)
-        #print([prediction, pred, crps.norm(item[2][:1], prediction[0])])
-        print([label, pred, pred-label])
+    #np.random.shuffle(test_data)
+    #print("[INFO] predict data...")
+    #mean = helpers.load_data(args.numpy_path, 'train_mean.npy')
+    #std = helpers.load_data(args.numpy_path, 'train_std.npy')
+    #for item in test_data[:100]:
+    #    input = np.concatenate((item[0], item[1][0], item[1][1]), axis=0)
+    #    prediction = model.predict([input[np.newaxis, :]])
+    #    label = converter.denormalize(item[2], mean,  std)
+    #    #print([item[2][0], label, item[3]])
+    #    pred = converter.denormalize(prediction[0], mean,  std)
+    #    #print([prediction, pred, crps.norm(item[2][:1], prediction[0])])
+    #    print([label, pred, pred-label])
 
 
 if __name__ == "__main__":

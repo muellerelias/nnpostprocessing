@@ -1,4 +1,4 @@
-from tensorflow.keras.layers import Activation, Dense, Input, Concatenate, Flatten, InputLayer
+from tensorflow.keras.layers import Activation, Dense, Input, Concatenate, Flatten, InputLayer, Embedding
 from tensorflow.keras.models import Model, Sequential
 import tensorflow as tf
 """
@@ -53,12 +53,24 @@ def build_one_input_model(shape):
 
     # first branch for the vector input
     inp = Input(shape=shape)
-    model = Dense(2800, activation='linear')(inp)
-    #model = Dense(32, activation='linear')(inp)
-    #model = Dense(16, activation='linear')(model)
-    #model = Dense( 8, activation='linear')(model)
-    #model = Dense( 4, activation='linear')(model)
-    model = Dense( 2, activation='linear')(model)
+    model = Dense(28, activation='linear')(inp)
+    model = Dense(2, activation='linear')(model)
 
     # returns the Model
     return Model(inp, model)
+
+
+def build_emb_model(shape):
+    # first branch for the features input
+    feature = Input(shape=(46,))
+
+    id_in = Input(shape=(1,))
+    emb = Embedding(24, 2)(id_in)
+    emb = Flatten()(emb)
+    
+    combined = Concatenate()([feature, emb])
+    model = Dense(28, activation='linear')(combined)
+    model = Dense(2, activation='linear')(model)
+
+    # returns the Model
+    return Model(inputs=[id_in, feature], outputs=model)
