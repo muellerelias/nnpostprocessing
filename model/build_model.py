@@ -53,7 +53,7 @@ def build_one_input_model(shape):
 
     # first branch for the vector input
     inp = Input(shape=shape)
-    model = Dense(28, activation='linear')(inp)
+    model = Dense(2800, activation='linear')(inp)
     #model = Dense(32, activation='linear')(inp)
     #model = Dense(16, activation='linear')(model)
     #model = Dense( 8, activation='linear')(model)

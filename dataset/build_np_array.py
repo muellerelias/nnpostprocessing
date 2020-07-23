@@ -75,7 +75,7 @@ def convert_to_model_data(set, mean, std):
         date = convert_date(set[0][i][0])
         country = convert_country(set[0][i][1])
         vector_data = (set[0][i][25:32]-mean[23:30])/std[23:30]
-        vector = np.array(np.append([date, country ], vector_data), dtype='float64')
+        vector = np.array(np.append([country, date ], vector_data), dtype='float64')
         #second element are the esamlple
         matrix_data = []
         for file in set:

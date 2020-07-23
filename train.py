@@ -41,11 +41,14 @@ def main(args):
     # get the data
     train_data = helpers.load_data(args.numpy_path, 'train_set.npy')
     valid_data = helpers.load_data(args.numpy_path, 'valid_set.npy')
-    test_data  = helpers.load_data(args.numpy_path, 'test_set.npy')
+    test_data = helpers.load_data(args.numpy_path, 'test_set.npy')
 
     # convert the data
     train_dataset, train_shape = converter.convert_numpy_to_one_input_dataset(
         train_data, batchsize=args.batchsize, shuffle=100, shape=True)
+    valid_dataset = converter.convert_numpy_to_one_input_dataset(
+        valid_data, batchsize=args.batchsize, shuffle=100)
+
 
     # Loading the model
     model = modelprovider.build_one_input_model(train_shape)
@@ -54,7 +57,7 @@ def main(args):
 
     # compiling the model
     lossfn = loss.crps_cost_function
-    opt = Adam(lr=0.007, decay=1e-3 / 200)
+    opt = Adam(lr=0.1, decay=1 / 200)
     model.compile(loss=lossfn, optimizer=opt)
 
     # Load model if exits
@@ -76,10 +79,10 @@ def main(args):
         epochs=args.epochs,
         batch_size=args.batchsize,
         verbose=1,
+        validation_data=valid_dataset,
+        validation_steps=20,
         callbacks=[tensorboard_callback, cp_callback],
-    ) 
-    #   validation_data=valid_dataset,
-
+    )
 
     print('[INFO] Finished training')
     end = datetime.now()
@@ -97,6 +100,7 @@ def main(args):
         pred = converter.denormalize(prediction[0], mean,  std)
         #print([prediction, pred, crps.norm(item[2][:1], prediction[0])])
         print([label, pred, pred-label])
+
 
 if __name__ == "__main__":
     helpers.mkdir_not_exists(os.path.join(args.logdir, args.name))
