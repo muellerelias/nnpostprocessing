@@ -10,7 +10,7 @@
 - modelle
 - erst nur deutschland
 - sinus tranformation = init + 10 Tage
--- betrag zum mittleren Tag des jarhes
+-- betrag zum mittleren Tag des jahres
 
 ###Daten
 - Die gemesten werte sind in 10 Tagen
