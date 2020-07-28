@@ -74,7 +74,7 @@ def main(args):
 
     # compiling the model
     lossfn = loss.crps_cost_function
-    opt = Adam(lr=0.02, decay=1 / 200)
+    opt = Adam(lr=0.02) #decay=1/200
     model.compile(loss=lossfn, optimizer=opt)
 
     # Load model if exits
@@ -105,15 +105,13 @@ def main(args):
     end = datetime.now()
     print(end-start)
 
-    # fig, ax = plt.subplots()
-
     np.random.shuffle(test_data)
     print("[INFO] predict data...")
     crps_label = []
     crps_pred = []
     mean = helpers.load_data(args.numpy_path, 'train_mean.npy')
     std = helpers.load_data(args.numpy_path, 'train_std.npy')
-    for item in test_data[:1000]:
+    for item in test_data:
         input1 = np.array([item[0][0]])[np.newaxis, :]
         input2 = item[0][1:][np.newaxis, :]
         input3 = item[1][np.newaxis, :]
@@ -136,8 +134,11 @@ def main(args):
     print(end-start)
     fig, axes = plt.subplots(1, 2, figsize=(10,2.5), dpi=100, sharex=True, sharey=True)
 
-    axes[0].hist(crps_pred, bins=50, color='b', label='Prediction')
-    axes[1].hist(crps_label, bins=50, color='g', label='Ensemble')
+    axes[0].hist(crps_pred, bins=50, color='b')
+    axes[0].set_title('Prediction')
+    axes[1].hist(crps_label, bins=50, color='g')
+    axes[1].set_title('Ensemble')
+
     # ax.set_xlabel('Temperature')
     # ax.set_ylabel('CRPS')
     plt.show()
