@@ -105,13 +105,12 @@ def main(args):
     end = datetime.now()
     print(end-start)
 
+    # fig, ax = plt.subplots()
 
-    # fig, ax = plt.subplots()    
-    
     np.random.shuffle(test_data)
     print("[INFO] predict data...")
     crps_label = []
-    crps_pred  = []
+    crps_pred = []
     mean = helpers.load_data(args.numpy_path, 'train_mean.npy')
     std = helpers.load_data(args.numpy_path, 'train_std.npy')
     for item in test_data[:1000]:
@@ -123,22 +122,26 @@ def main(args):
         pred = converter.denormalize(prediction[0][0], mean,  std)
         pred_std = converter.denormalizeStd(prediction[0][1], mean,  std)
         pred_crps = crps.norm(label, [pred, abs(pred_std)])
-        crps_label.append( item[3] )
-        crps_pred.append( pred_crps )
+        crps_label.append(item[3])
+        crps_pred.append(pred_crps)
         # ax.scatter(label, abs(item[3]), c='r', marker='o')
         # ax.scatter(label, abs(pred_crps), c='b', marker='o')
 
     crps_label_mean = np.array(crps_label).mean(axis=0)
-    crps_pred_mean  = np.array(crps_pred).mean(axis=0)
+    crps_pred_mean = np.array(crps_pred).mean(axis=0)
     print(crps_label_mean)
-    print(crps_pred_mean )
+    print(crps_pred_mean)
 
     end = datetime.now()
     print(end-start)
-    
+    fig, axes = plt.subplots(1, 2, figsize=(10,2.5), dpi=100, sharex=True, sharey=True)
+
+    axes[0].hist(crps_pred, bins=50, color='b', label='Prediction')
+    axes[1].hist(crps_label, bins=50, color='g', label='Ensemble')
     # ax.set_xlabel('Temperature')
     # ax.set_ylabel('CRPS')
-    # plt.show()	
+    plt.show()
+
 
 if __name__ == "__main__":
     helpers.mkdir_not_exists(os.path.join(args.logdir, args.name))
