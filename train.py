@@ -3,17 +3,18 @@ import json
 import os
 from datetime import datetime
 
+import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import utils
 from tensorflow.keras.optimizers import SGD, Adam
 
+import dataset.converter as converter
 import dataset.helper.crps as crps
 import dataset.shape as shape
 import helper as helpers
 import model.build_model as modelprovider
 import model.loss_functions as loss
-import dataset.converter as converter
 
 parser = argparse.ArgumentParser(description='This is the inference script')
 
@@ -73,7 +74,7 @@ def main(args):
 
     # compiling the model
     lossfn = loss.crps_cost_function
-    opt = Adam(lr=0.1, decay=1 / 200)
+    opt = Adam(lr=0.02, decay=1 / 200)
     model.compile(loss=lossfn, optimizer=opt)
 
     # Load model if exits
@@ -104,12 +105,16 @@ def main(args):
     end = datetime.now()
     print(end-start)
 
+
+    # fig, ax = plt.subplots()    
+    
     np.random.shuffle(test_data)
     print("[INFO] predict data...")
+    crps_label = []
+    crps_pred  = []
     mean = helpers.load_data(args.numpy_path, 'train_mean.npy')
     std = helpers.load_data(args.numpy_path, 'train_std.npy')
-    for item in test_data[:100]:
-        result = []
+    for item in test_data[:1000]:
         input1 = np.array([item[0][0]])[np.newaxis, :]
         input2 = item[0][1:][np.newaxis, :]
         input3 = item[1][np.newaxis, :]
@@ -117,10 +122,23 @@ def main(args):
         label = converter.denormalize(item[2][0], mean,  std)
         pred = converter.denormalize(prediction[0][0], mean,  std)
         pred_std = converter.denormalizeStd(prediction[0][1], mean,  std)
-        pred_crps = crps.norm(label, [pred, pred_std])
-        result.append([label, item[3]])
-        result.append([pred, pred_std, pred_crps ])
-        print(result)
+        pred_crps = crps.norm(label, [pred, abs(pred_std)])
+        crps_label.append( item[3] )
+        crps_pred.append( pred_crps )
+        # ax.scatter(label, abs(item[3]), c='r', marker='o')
+        # ax.scatter(label, abs(pred_crps), c='b', marker='o')
+
+    crps_label_mean = np.array(crps_label).mean(axis=0)
+    crps_pred_mean  = np.array(crps_pred).mean(axis=0)
+    print(crps_label_mean)
+    print(crps_pred_mean )
+
+    end = datetime.now()
+    print(end-start)
+    
+    # ax.set_xlabel('Temperature')
+    # ax.set_ylabel('CRPS')
+    # plt.show()	
 
 if __name__ == "__main__":
     helpers.mkdir_not_exists(os.path.join(args.logdir, args.name))
