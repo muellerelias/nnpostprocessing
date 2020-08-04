@@ -4,6 +4,7 @@ import os
 import pathlib
 from datetime import datetime
 
+from helper.verificationrank import verificationRank
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -20,9 +21,11 @@ parser.add_argument("--dataset_dir", dest="dataset_dir",
 parser.add_argument("--np_dir", dest="np_dir", metavar="FILE",
                     help="folder where to store the numpy arrays")
 
-parser.add_argument("--normalization", dest="normalization", default=False,  action='store_true',
-                     help="Activate normalization of the data")
 
+"""
+parser.add_argument("--normalization", dest="normalization", default=False,  action='store_true',
+                    help="Activate normalization of the data")
+""" 
 
 args = parser.parse_args()
 
@@ -65,17 +68,13 @@ def main(args):
     np.save(os.path.join(args.np_dir, 'train_std.npy'), train_std)
 
     print('[INFO] starting normalizing and transforming to model tensor...')
-    if (args.normalization):
-        print('[INFO] with normalization')
-    else: 
-        print('[INFO] without normalization')
 
     train_set = convert_to_model_data(
-        train_set, train_mean, train_std, args.normalization)
+        train_set, train_mean, train_std)
     valid_set = convert_to_model_data(
-        valid_set, train_mean, train_std, args.normalization)
+        valid_set, train_mean, train_std)
     test_set = convert_to_model_data(
-        test_set, train_mean, train_std, args.normalization)
+        test_set, train_mean, train_std)
 
     print('[INFO] starting saving dataset split..')
     np.save(os.path.join(args.np_dir, 'train_set.npy'), train_set)
@@ -86,7 +85,7 @@ def main(args):
     print('[INFO] Finished')
 
 
-def convert_to_model_data(set, mean, std, norm):
+def convert_to_model_data(set, mean, std):
     data = []
     for i in range(len(set[0])):
         row = []
@@ -95,17 +94,11 @@ def convert_to_model_data(set, mean, std, norm):
         country = convert_country(set[0][i][1])
         matrix_data = []
 
-        if (norm):
-            vector_data = (set[0][i][25:32]-mean[25:32])/std[25:32]
-            for file in set:
-                matrix_data.append((file[i][6:25]-mean[6:25])/std[6:25])
-            label = np.array(
-                (np.array(set[0][i][2:6])-mean[2:6])/std[2:6], dtype='float64')
-        else:
-            vector_data = set[0][i][25:32]
-            for file in set:
-                matrix_data.append(file[i][6:25])
-            label = np.array(set[0][i][2:6], dtype='float64')
+        vector_data = (set[0][i][25:32]-mean[25:32])/std[25:32]
+        for file in set:
+            matrix_data.append((file[i][6:25]-mean[6:25])/std[6:25])
+
+        label = np.array(set[0][i][2:6], dtype='float64')
 
         vector = np.array(
             np.append([country, date], vector_data), dtype='float64')
@@ -123,7 +116,9 @@ def convert_to_model_data(set, mean, std, norm):
         row.append(matrix)
         row.append(label)
         row.append(Crps)
+        row.append(verificationRank(set[0][i][2], ensemble))
         data.append(row)
+    
     print('[INFO] Finished processing data')
     return data
 

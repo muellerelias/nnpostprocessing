@@ -22,4 +22,3 @@ pip3 install tensorflow properscoring
 - Change the Path variable in dataset/read_csv_files.py
 - For training a model use ```bash python3 train.py```
 
-

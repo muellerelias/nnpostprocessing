@@ -50,9 +50,11 @@ def main(args):
     # convert the data
     if (args.modeltype == 'multi'):
         train_dataset, train_shape = converter.convert_numpy_to_multi_input_dataset(
-            train_data, batchsize=args.batchsize, shuffle=100, shape=True)
+            train_data, batchsize=args.batchsize, shuffle=1000, shape=True)
         valid_dataset = converter.convert_numpy_to_multi_input_dataset(
             valid_data, batchsize=args.batchsize, shuffle=100)
+        test_dataset = converter.convert_numpy_to_multi_input_dataset(
+            test_data, batchsize=args.batchsize)
         model = modelprovider.build_multi_input_model(
             train_shape[1], train_shape[2])
     elif (args.modeltype == 'emp'):
@@ -60,12 +62,16 @@ def main(args):
             train_data, batchsize=args.batchsize, shuffle=100, shape=True)
         valid_dataset = converter.convert_numpy_to_emp_input_dataset(
             valid_data, batchsize=args.batchsize, shuffle=100)
+        test_dataset = converter.convert_numpy_to_emp_input_dataset(
+            test_data, batchsize=args.batchsize)
         model = modelprovider.build_emb_model(train_shape[1])
     else:
         train_dataset, train_shape = converter.convert_numpy_to_one_input_dataset(
             train_data, batchsize=args.batchsize, shuffle=100, shape=True)
         valid_dataset = converter.convert_numpy_to_one_input_dataset(
             valid_data, batchsize=args.batchsize, shuffle=100)
+        test_dataset = converter.convert_numpy_to_one_input_dataset(
+            test_data, batchsize=args.batchsize)
         model = modelprovider.build_one_input_model(train_shape)
 
     # Loading the model
@@ -74,7 +80,7 @@ def main(args):
 
     # compiling the model
     lossfn = loss.crps_cost_function
-    opt = Adam(lr=0.02) #decay=1/200
+    opt = Adam(lr=0.0004)
     model.compile(loss=lossfn, optimizer=opt)
 
     # Load model if exits
@@ -104,44 +110,54 @@ def main(args):
     print('[INFO] Finished training')
     end = datetime.now()
     print(end-start)
+    result = model.evaluate(test_dataset)
+    print(result)
 
-    np.random.shuffle(test_data)
+
+    # np.random.shuffle(test_data)
     print("[INFO] predict data...")
-    crps_label = []
-    crps_pred = []
-    mean = helpers.load_data(args.numpy_path, 'train_mean.npy')
-    std = helpers.load_data(args.numpy_path, 'train_std.npy')
-    for item in test_data:
-        input1 = np.array([item[0][0]])[np.newaxis, :]
-        input2 = item[0][1:][np.newaxis, :]
-        input3 = item[1][np.newaxis, :]
-        prediction = model.predict([input1, input2, input3])
-        label = converter.denormalize(item[2][0], mean,  std)
-        pred = converter.denormalize(prediction[0][0], mean,  std)
-        pred_std = converter.denormalizeStd(prediction[0][1], mean,  std)
-        pred_crps = crps.norm(label, [pred, abs(pred_std)])
-        crps_label.append(item[3])
-        crps_pred.append(pred_crps)
-        # ax.scatter(label, abs(item[3]), c='r', marker='o')
-        # ax.scatter(label, abs(pred_crps), c='b', marker='o')
+    #crps_label = []
+    #crps_pred = []
+    #pit = []
+    #rank = []
 
-    crps_label_mean = np.array(crps_label).mean(axis=0)
-    crps_pred_mean = np.array(crps_pred).mean(axis=0)
-    print(crps_label_mean)
-    print(crps_pred_mean)
+    #mean = helpers.load_data(args.numpy_path, 'train_mean.npy')
+    #std = helpers.load_data(args.numpy_path, 'train_std.npy')
+
+    # for item in test_data[:1000]:
+    #    input1 = np.array([item[0][0]])[np.newaxis, :]
+    #    input2 = item[0][1:][np.newaxis, :]
+    #    input3 = item[1][np.newaxis, :]
+    #    prediction = model.predict([input1, input2, input3])
+    #    pred_crps = crps.norm(
+    #        item[2][0], [prediction[0][0], abs(prediction[0][1])])
+    #    crps_label.append(item[3])
+    #    crps_pred.append(pred_crps)
+    #    pit.append(helpers.calculatePIT(
+    #        item[2][0], prediction[0][0], abs(prediction[0][1])))
+    #    rank.append(item[4])
+
+    #crps_label_mean = np.array(crps_label).mean(axis=0)
+    #crps_pred_mean = np.array(crps_pred).mean(axis=0)
+    # print(crps_label_mean)
+    # print(crps_pred_mean)
 
     end = datetime.now()
     print(end-start)
-    fig, axes = plt.subplots(1, 2, figsize=(10,2.5), dpi=100, sharex=True, sharey=True)
 
-    axes[0].hist(crps_pred, bins=50, color='b')
-    axes[0].set_title('Prediction')
-    axes[1].hist(crps_label, bins=50, color='g')
-    axes[1].set_title('Ensemble')
+    #fig, axes = plt.subplots(1, 2, figsize=(10, 2.5), dpi=100)
 
-    # ax.set_xlabel('Temperature')
-    # ax.set_ylabel('CRPS')
-    plt.show()
+    #axes[0].hist(pit, bins=12, range=(0, 1), color='g')
+    # axes[0].set_title('PIT')
+    # axes[1].hist(rank, bins=12, range=(1, 13),
+    #             color='g', histtype="step", rwidth=1)
+    #axes[1].set_xticks([i for i in range(1, 14)])
+    #axes[1].set_xticklabels([str(i) for i in range(1, 14)])
+    #axes[1].set_title('Verification Rank')
+    # axes[1].set_xlim([1,12])
+    # axes[1].set_ylim([0,150])
+
+    # plt.show()
 
 
 if __name__ == "__main__":

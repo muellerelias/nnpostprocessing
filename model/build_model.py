@@ -16,25 +16,27 @@ def build_multi_input_model(shape_vec, shape_mat):
         model: Keras model
     """
 
-    # first branch for the 
-    inp1 = Input(shape=(1,))
-    model1 = Embedding(24, 2)(inp1)
+    # first branch for the
+    inp1 = Input(shape=(1,), name='Country_ID')
+    model1 = Embedding(24, 9, name='Country_Embedding')(inp1)
     model1 = Flatten()(model1)
 
     # s
     # econd branch for the vector input
-    inp2 = Input(shape=shape_vec)
-    model2 = Dense(9, activation='linear')(inp2)
+    inp2 = Input(shape=shape_vec, name="Date_and_Regimes")
+    model2 = Dense(13, activation='linear',  name="Vector_Hidden_Layer")(inp2)
 
     # third branch for the matrix input
-    inp3 = Input(shape=shape_mat)
+    inp3 = Input(shape=shape_mat, name="Ensemble")
     model3 = Flatten()(inp3)
+    model3 = Dense(16, activation='linear',  name="Ensemble_Hidden_Layer")(model3)
 
     # concatenate the two inputs
     combined = Concatenate(axis=1)([model1, model2, model3])
 
     # add the hiddden layers
-    x = Dense(2, activation='linear')(combined)  # (x)
+    x = Dense(34, activation='linear', name="Combined_Hidden_Layer")(combined)
+    x = Dense(2, activation='linear', name="Output_Layer")(x)
 
     # returns the Model
     return Model([inp1, inp2, inp3], outputs=x)
@@ -70,10 +72,10 @@ def build_emb_model(shape):
     id_in = Input(shape=(1,))
     emb = Embedding(24, 2)(id_in)
     emb = Flatten()(emb)
-    
+
     combined = Concatenate()([feature_in, emb])
     #model = Dense(28, activation='linear')(combined)
-    model = Dense(2, activation='linear')(combined)#(model)
+    model = Dense(2, activation='linear')(combined)  # (model)
 
     # returns the Model
     return Model(inputs=[id_in, feature_in], outputs=model)
