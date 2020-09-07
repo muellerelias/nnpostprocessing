@@ -54,12 +54,12 @@ def main(args):
     test_data = helpers.load_data(args.numpy_path, 'test_set.npy')
     
     # convert the data
-    train_dataset, train_shape = converter.convert_numpy_to_multi_input_dataset(
+    train_dataset, train_shape = converter.convert_numpy_to_multi_input_dataset_only_regimes(
         train_data, batchsize=args.batchsize, shuffle=1000, shape=True)
-    valid_dataset = converter.convert_numpy_to_multi_input_dataset(
+    valid_dataset = converter.convert_numpy_to_multi_input_dataset_only_regimes(
         valid_data, batchsize=args.batchsize, shuffle=100)
 
-    model = modelprovider.build_multi_input_model(
+    model = modelprovider.build_multi_only_regime_model(
         train_shape[1], train_shape[2])
 
     # Loading the model
@@ -85,17 +85,17 @@ def main(args):
 
     # begin with training
     print('[INFO] Starting training')
-    #model.fit(
-    #    train_dataset,
-    #    epochs=args.epochs,
-    #    initial_epoch=args.initialepochs,
-    #    batch_size=args.batchsize,
-    #    verbose=1,
-    #    validation_data=valid_dataset,
-    #    validation_batch_size=args.batchsize,
-    #    use_multiprocessing=True,
-    #    callbacks=[tensorboard_callback, cp_callback, cp_callback_name],
-    #)
+    model.fit(
+        train_dataset,
+        epochs=args.epochs,
+        initial_epoch=args.initialepochs,
+        batch_size=args.batchsize,
+        verbose=1,
+        validation_data=valid_dataset,
+        validation_batch_size=args.batchsize,
+        use_multiprocessing=True,
+        callbacks=[tensorboard_callback, cp_callback, cp_callback_name],
+    )
 
     model.load_weights(os.path.join(checkpoint_dir,'checkpoint'))
 
@@ -103,7 +103,7 @@ def main(args):
     end = datetime.now()
     print(end-start)
     #result = model.evaluate(test_dataset)
-    #print(result)
+    # print(result)
 
     print("[INFO] predict data...")
 
@@ -113,11 +113,6 @@ def main(args):
     axes[0][0].hist(all_pit,  bins=12, range=(0, 1),  color='g')
     axes[0][1].hist(all_rank, bins=12, range=(1, 13), color='g', rwidth=1)
 
-    print(('all', all_score))
-    for i in range(1,24):
-        result = inference(model, test_data, countryid=i)
-        print((i, result[1]))
-    
     # Countries: ger: 8, spain: 2, Romänien: 21, Schweden: 16, United Kingdom: 5
     ger_pit, ger_score, ger_rank = inference(model, test_data, countryid=8)
     axes[1][0].hist(ger_pit, bins=12, range=(0, 1), histtype="step", label='Germany')
@@ -184,11 +179,11 @@ def inference(model, data, countryid=None):
     ranks = []
     for item in data:
         input1 = np.array([item[0][0]])[np.newaxis, :]
-        input2 = item[0][1:][np.newaxis, :]
-        #input2 = np.array([item[0][1]])[np.newaxis, :]
+        #input2 = item[0][2:][np.newaxis, :]
+        input2 = np.array([item[0][1]])[np.newaxis, :]
         #input2 = np.array([item[2][0]])[np.newaxis, :]
         input3 = item[1][np.newaxis, :]
-        prediction = model.predict([input1, input2, input3])
+        prediction = model.predict([input1, input2])
         pred_crps = crps.norm(
             item[2][0], [prediction[0][0], abs(prediction[0][1])])
         crps_pred.append(pred_crps)

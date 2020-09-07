@@ -27,17 +27,15 @@ parser.add_argument("--data_numpy", dest="numpy_path",
 parser.add_argument("--log_dir", dest="logdir",
                     help="folder where tensorboard prints the logs", metavar="FILE", default='/home/elias/Nextcloud/1.Masterarbeit/Tests/')
 
-parser.add_argument("--learning_rate", dest="learningrate", type=float,
-                    help="Learning rate for the optimizer", default='0.002')
 
 parser.add_argument("--batch_size", dest="batchsize", type=int,
                     help="batch size of the experiment", default='1')
 
+parser.add_argument("--learning_rate", dest="learningrate", type=float,
+                    help="Learning rate for the optimizer", default='0.002')
+
 parser.add_argument("--epochs", dest="epochs", type=int,
                     help="epoch count of the experiment", default='1')
-
-parser.add_argument("--initial_epochs", dest="initialepochs", type=int,
-                    help="initial epoch count of the experiment", default='0')
 
 parser.add_argument("--model", dest="modeltype",
                     choices=['emp', 'single', 'multi'])
@@ -51,16 +49,32 @@ def main(args):
     # get the data
     train_data = helpers.load_data(args.numpy_path, 'train_set.npy')
     valid_data = helpers.load_data(args.numpy_path, 'valid_set.npy')
-    test_data = helpers.load_data(args.numpy_path, 'test_set.npy')
-    
+    test_data  = helpers.load_data(args.numpy_path, 'test_set.npy')
+    train_data = np.concatenate( (train_data , valid_data), axis=0)
+    valid_data = test_data
+
+    countryid  = 5
+    train_data_filterd = []
+    valid_data_filterd = []
+    for item in train_data:
+        if (item[0][0] == countryid):
+            train_data_filterd.append(item)
+
+    for item in train_data:
+        if (item[0][0] == countryid):
+            valid_data_filterd.append(item)
+
+    train_data = np.array(train_data_filterd)
+    valid_data = np.array(valid_data_filterd)
+
     # convert the data
-    train_dataset, train_shape = converter.convert_numpy_to_multi_input_dataset(
+    train_dataset, train_shape = converter.convert_numpy_to_country_input_dataset(
         train_data, batchsize=args.batchsize, shuffle=1000, shape=True)
-    valid_dataset = converter.convert_numpy_to_multi_input_dataset(
+    valid_dataset = converter.convert_numpy_to_country_input_dataset(
         valid_data, batchsize=args.batchsize, shuffle=100)
 
-    model = modelprovider.build_multi_input_model(
-        train_shape[1], train_shape[2])
+    model = modelprovider.build_multi_country_model(
+        train_shape[0], train_shape[1])
 
     # Loading the model
     # Print Model
@@ -85,17 +99,18 @@ def main(args):
 
     # begin with training
     print('[INFO] Starting training')
-    #model.fit(
-    #    train_dataset,
-    #    epochs=args.epochs,
-    #    initial_epoch=args.initialepochs,
-    #    batch_size=args.batchsize,
-    #    verbose=1,
-    #    validation_data=valid_dataset,
-    #    validation_batch_size=args.batchsize,
-    #    use_multiprocessing=True,
-    #    callbacks=[tensorboard_callback, cp_callback, cp_callback_name],
-    #)
+    model.fit(
+        train_dataset,
+        epochs=args.epochs,
+        initial_epoch=17,
+        batch_size=args.batchsize,
+        verbose=1,
+        validation_data=valid_dataset,
+        validation_batch_size=args.batchsize,
+        use_multiprocessing=True,
+        workers= 9,
+        callbacks=[tensorboard_callback, cp_callback, cp_callback_name],
+    )
 
     model.load_weights(os.path.join(checkpoint_dir,'checkpoint'))
 
@@ -103,7 +118,7 @@ def main(args):
     end = datetime.now()
     print(end-start)
     #result = model.evaluate(test_dataset)
-    #print(result)
+    # print(result)
 
     print("[INFO] predict data...")
 
@@ -113,11 +128,6 @@ def main(args):
     axes[0][0].hist(all_pit,  bins=12, range=(0, 1),  color='g')
     axes[0][1].hist(all_rank, bins=12, range=(1, 13), color='g', rwidth=1)
 
-    print(('all', all_score))
-    for i in range(1,24):
-        result = inference(model, test_data, countryid=i)
-        print((i, result[1]))
-    
     # Countries: ger: 8, spain: 2, Romänien: 21, Schweden: 16, United Kingdom: 5
     ger_pit, ger_score, ger_rank = inference(model, test_data, countryid=8)
     axes[1][0].hist(ger_pit, bins=12, range=(0, 1), histtype="step", label='Germany')
@@ -183,12 +193,10 @@ def inference(model, data, countryid=None):
     crps_pred = []
     ranks = []
     for item in data:
-        input1 = np.array([item[0][0]])[np.newaxis, :]
+        #input1 = np.array([item[0][0]])[np.newaxis, :]
         input2 = item[0][1:][np.newaxis, :]
-        #input2 = np.array([item[0][1]])[np.newaxis, :]
-        #input2 = np.array([item[2][0]])[np.newaxis, :]
         input3 = item[1][np.newaxis, :]
-        prediction = model.predict([input1, input2, input3])
+        prediction = model.predict([input2, input3])
         pred_crps = crps.norm(
             item[2][0], [prediction[0][0], abs(prediction[0][1])])
         crps_pred.append(pred_crps)
