@@ -18,7 +18,7 @@ import model.loss_functions as loss
 
 
 def main():
-    numpy_path='/Daten/vorverarbeitetNorm/'
+    numpy_path='/root/Daten/vorverarbeitetNorm/'
     # get the data
     test_data = helpers.load_data(numpy_path, 'test_set.npy')
 
