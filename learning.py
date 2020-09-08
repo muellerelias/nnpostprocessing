@@ -80,13 +80,10 @@ train_data = helpers.load_data(
 valid_data = helpers.load_data(
     '/root/Daten/vorverarbeitetNorm/','valid_set.npy')
 
-train_data = []
-valid_data = []
-
-train_dataset, train_shape = converter.convert_numpy_to_multi_input_dataset(
-    train_data, shuffle=1000, shape=True)
+train_dataset = converter.convert_numpy_to_multi_input_dataset(
+    train_data, shuffle=1000)
 valid_dataset = converter.convert_numpy_to_multi_input_dataset(
-    valid_data, batchsize=1, shuffle=100)
+    valid_data, batchsize=1000, shuffle=100)
 
 
 tuner = MyTuner(
