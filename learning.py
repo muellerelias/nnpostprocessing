@@ -25,8 +25,7 @@ def build_model(hp):
     activation='linear'
     
     inp1 = Input(shape=(1,), name='Country_ID')
-    model1 = Embedding(24, hp.Int('Embedding size', 2, 24,
-                                  default=12), name='Country_Embedding')(inp1)
+    model1 = Embedding(24, 23, name='Country_Embedding')(inp1)
     model1 = Flatten()(model1)
 
     inp2 = Input(shape=(8,), name="Date_and_Regimes")
@@ -39,14 +38,13 @@ def build_model(hp):
     x = Concatenate(axis=1)([model1, inp2, model3])
 
     # add the hiddden layers
-    nodes = hp.Choice('Combined_Hidden_Layer_nodes',[10,20,30,40,50,60,70,80,90,100,110,120,130,140,150], default=100)
-    x = Dense(nodes, activation=activation,
-                name="Combined_Hidden_Layer_1")(x)
-    x = Dense(nodes, activation=activation,
-                name="Combined_Hidden_Layer_2")(x)
-    x = Dense(nodes, activation=activation,
-                name="Combined_Hidden_Layer_3")(x)
-
+    nodes = hp.Choice('Combined_Hidden_Layer_nodes',[10,20,30,40,50,60,70,80,90,100,110,120,130,140,150], default=80)
+    numb= hp.Int('Number_of_hidden_Layers',0,5, default=3)
+    if(numb>0):
+        for i in range(1,numb):
+            x = Dense(nodes, activation=activation,
+                        name="Combined_Hidden_Layer_"+str(i))(x)
+    
     x = Dense(2, activation=activation, name="Output_Layer")(x)
     
     # returns the Model
@@ -90,8 +88,8 @@ tuner = MyTuner(
     build_model,
     objective='val_loss',
     max_epochs=30,
-    hyperband_iterations=3,
-    project_name='ganzesNetz08092020')
+    hyperband_iterations=10,
+    project_name='ganzesNetz09092020')
 
 tuner.search(train_dataset,
              validation_data=valid_dataset,
