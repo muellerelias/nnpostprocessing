@@ -21,6 +21,10 @@ import model.build_model as modelprovider
 import model.loss_functions as loss
 
 
+"""
+ - all (regime + temperature + remaining NWP inputs)4
+"""
+
 def build_model(hp):
     activation='linear'
     
