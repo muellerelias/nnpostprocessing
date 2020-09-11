@@ -22,7 +22,7 @@ import model.loss_functions as loss
 
 
 """
- - regime
+ - regime, but no date
 """
 
 def build_model(hp):
@@ -95,7 +95,7 @@ tuner = MyTuner(
     objective='val_loss',
     max_epochs=30,
     hyperband_iterations=10,
-    project_name='ganzesNetz09092020_5')
+    project_name='ganzesNetz11092020_7')
 
 tuner.search(train_dataset,
              validation_data=valid_dataset,

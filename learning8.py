@@ -22,7 +22,7 @@ import model.loss_functions as loss
 
 
 """
- - regime
+ - regime + remaining NWP inputs (no temperature)
 """
 
 def build_model(hp):
@@ -32,7 +32,7 @@ def build_model(hp):
     model1 = Embedding(24, 23, name='Country_Embedding')(inp1)
     model1 = Flatten()(model1)
 
-    inp2 = Input(shape=(8,), name="Date_and_Regimes")
+    inp2 = Input(shape=(7,), name="Date_and_Regimes")
 
     # third branch for the matrix input
     inp3 = Input(shape=(2,1), name="Ensemble")
@@ -84,9 +84,9 @@ train_data = helpers.load_data(
 valid_data = helpers.load_data(
     '/root/Daten/vorverarbeitetNorm/','valid_set.npy')
 
-train_dataset = converter.convert_numpy_to_multi_input_dataset_temperature(
+train_dataset = converter.convert_numpy_to_multi_input_dataset_without_date(
     train_data, shuffle=1000)
-valid_dataset = converter.convert_numpy_to_multi_input_dataset_temperature(
+valid_dataset = converter.convert_numpy_to_multi_input_dataset_without_date(
     valid_data, batchsize=1000, shuffle=100)
 
 
@@ -95,7 +95,7 @@ tuner = MyTuner(
     objective='val_loss',
     max_epochs=30,
     hyperband_iterations=10,
-    project_name='ganzesNetz11092020_6')
+    project_name='ganzesNetz11092020_8')
 
 tuner.search(train_dataset,
              validation_data=valid_dataset,
