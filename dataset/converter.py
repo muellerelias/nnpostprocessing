@@ -227,7 +227,7 @@ def convert_numpy_to_multi_input_dataset_no_temperature(data, batchsize=None,  s
     for item in data:
         input1.append( item[0][0] )
         input2.append(item[0][1:])
-        input3.append(np.concatenate((a[:,:16],a[:,17:]),axis=1))
+        input3.append(np.concatenate((item[1][:,:16],item[1][:,17:]),axis=1))
         label.append(item[2][0])
 
     dataset_input = tf.data.Dataset.from_tensor_slices((input1, input2, input3))
@@ -254,7 +254,7 @@ def convert_numpy_to_multi_input_dataset_no_temperature_no_regimes(data, batchsi
     for item in data:
         input1.append( item[0][0] )
         input2.append(item[0][1])
-        input3.append(np.concatenate((a[:,:16],a[:,17:]),axis=1))
+        input3.append(np.concatenate((item[1][:,:16],item[1][:,17:]),axis=1))
         label.append(item[2][0])
 
     dataset_input = tf.data.Dataset.from_tensor_slices((input1, input2, input3))
