@@ -15,7 +15,7 @@ In this project we aim to elucidate if there is an additional value in using for
 ## Installation
 
 ```bash
-pip3 install tensorflow properscoring
+pip3 install tensorflow properscoring matplotlib pandas keras-tuner
 ```
 
 ## Usage

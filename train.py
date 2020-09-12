@@ -57,7 +57,7 @@ def main(args):
     train_dataset, train_shape = converter.convert_numpy_to_multi_input_dataset(
         train_data, batchsize=args.batchsize, shuffle=1000, shape=True)
     valid_dataset = converter.convert_numpy_to_multi_input_dataset(
-        valid_data, batchsize=args.batchsize, shuffle=100)
+        valid_data, batchsize=1000, shuffle=100)
 
     model = modelprovider.build_multi_input_model(
         train_shape[1], train_shape[2])
@@ -85,91 +85,30 @@ def main(args):
 
     # begin with training
     print('[INFO] Starting training')
-    #model.fit(
-    #    train_dataset,
-    #    epochs=args.epochs,
-    #    initial_epoch=args.initialepochs,
-    #    batch_size=args.batchsize,
-    #    verbose=1,
-    #    validation_data=valid_dataset,
-    #    validation_batch_size=args.batchsize,
-    #    use_multiprocessing=True,
-    #    callbacks=[tensorboard_callback, cp_callback, cp_callback_name],
-    #)
+    predictions = []
+    for i in range(1,11):
+        model.fit(
+            train_dataset,
+            epochs=args.epochs,
+            initial_epoch=args.initialepochs,
+            batch_size=args.batchsize,
+            verbose=1,
+            validation_data=valid_dataset,
+            validation_batch_size=1000,
+            callbacks=[tensorboard_callback, cp_callback, cp_callback_name],
+        )
+        print('[INFO] Finished training'+str(i))
+        print(datetime.now()-start)
+        model.load_weights(os.path.join(checkpoint_dir,'checkpoint'))
+        predictions.append(model.predict())
 
-    model.load_weights(os.path.join(checkpoint_dir,'checkpoint'))
+    predictions = np.array(predictions)
+    preds[:, :, 1] = np.abs(preds[:, :, 1])   # Make sure std is positive
+    mean_preds = np.mean(preds, 0)
+    ens_score = crps_normal(mean_preds[:, 0], mean_preds[:, 1], test_set.targets).mean()    print(f'Ensemble test score = {ens_score}')
+    print(f'Ensemble test score = {ens_score}')
 
-    print('[INFO] Finished training')
-    end = datetime.now()
-    print(end-start)
-    #result = model.evaluate(test_dataset)
-    #print(result)
-
-    print("[INFO] predict data...")
-
-    fig, axes = plt.subplots(3, 2, figsize=(60, 20), dpi=100)
-
-    all_pit, all_score, all_rank = inference(model, test_data)
-    axes[0][0].hist(all_pit,  bins=12, range=(0, 1),  color='g')
-    axes[0][1].hist(all_rank, bins=12, range=(1, 13), color='g', rwidth=1)
-
-    print(('all', all_score))
-    for i in range(1,24):
-        result = inference(model, test_data, countryid=i)
-        print((i, result[1]))
     
-    # Countries: ger: 8, spain: 2, Romänien: 21, Schweden: 16, United Kingdom: 5
-    ger_pit, ger_score, ger_rank = inference(model, test_data, countryid=8)
-    axes[1][0].hist(ger_pit, bins=12, range=(0, 1), histtype="step", label='Germany')
-    axes[1][1].hist(ger_rank, bins=12, range=(1, 13), histtype="step", rwidth=1, label='Germany')
-
-
-    swe_pit, swe_score, swe_rank = inference(model, test_data, countryid=16)
-    axes[1][0].hist(swe_pit, bins=12, range=(0, 1), histtype="step", label='Sweden')
-    axes[1][1].hist(swe_rank, bins=12, range=(1, 13), histtype="step", label='Sweden', rwidth=1)
-
-    spa_pit, spa_score, spa_rank = inference(model, test_data, countryid=2)
-    axes[2][0].hist(spa_pit, bins=12, range=(0, 1), label="Spain", histtype="step")
-    axes[2][1].hist(spa_rank, bins=12, range=(1, 13), label="Spain", histtype="step", rwidth=1)
-    
-    uk_pit, uk_score,  uk_rank = inference(model, test_data, countryid=5)
-    axes[2][0].hist(uk_pit, bins=12, range=(0, 1), label='United Kingdom', histtype="step")
-    axes[2][1].hist(uk_rank, bins=12, range=(1, 13),label='United Kingdom', histtype="step", rwidth=1)
-
-    rom_pit, rom_score, rom_rank = inference(model, test_data, countryid=21)
-    axes[1][0].hist(rom_pit, bins=12, range=(0, 1), label='Romania',  histtype="step")
-    axes[1][1].hist(rom_rank, bins=12, range=(1, 13), label='Romania', histtype="step", rwidth=1)
-
-    end = datetime.now()
-    print(end-start)
-    
-    print(all_score)
-    print(ger_score)
-    print(swe_score)
-    print(spa_score)
-    print(uk_score)
-    print(rom_score)
-
-    axes[0][1].set_xticks([i for i in range(1, 14)])
-    axes[0][1].set_xticklabels([str(i) for i in range(1, 14)])
-    axes[0][1].set_title('Verification Rank (all Countries)')
-    axes[0][0].set_title('PIT (all Countries)')
-
-    axes[1][0].legend(loc='upper right')
-    axes[1][0].set_title('PIT (per country)')
-    axes[1][1].legend(loc='upper right')
-    axes[1][1].set_xticklabels([str(i) for i in range(1, 14)])
-    axes[1][1].set_title('Verification Rank (per country)')
-    
-    axes[2][0].legend(loc='upper right')
-    axes[2][0].set_title('PIT (per country)')
-    axes[2][1].legend(loc='upper right')
-    axes[2][1].set_xticklabels([str(i) for i in range(1, 14)])
-    axes[2][1].set_title('Verification Rank (per country)')
-    
-    plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.95, wspace=0.25, hspace=0.25)
-    plt.show()
-
 
 def inference(model, data, countryid=None):
     if (countryid != None):

@@ -1,6 +1,8 @@
 from tensorflow.keras.layers import Activation, Dense, Input, Concatenate, Flatten, InputLayer, Embedding
 from tensorflow.keras.models import Model, Sequential
 import tensorflow as tf
+
+
 """
 Example: https://www.pyimagesearch.com/2019/02/04/keras-multiple-inputs-and-mixed-data/
 """
@@ -257,3 +259,9 @@ def build_multi_input_model_only_temperature(shape_vec, shape_mat):
 
     # returns the Model
     return Model([inp1, inp2, inp3], outputs=x)
+
+def reset_weights(model):
+    session = K.get_session()
+    for layer in model.layers: 
+        if hasattr(layer, 'kernel_initializer'):
+            layer.kernel.initializer.run(session=session)

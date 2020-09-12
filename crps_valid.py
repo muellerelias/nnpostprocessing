@@ -3,19 +3,18 @@ import json
 import os
 from datetime import datetime
 
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import numpy as np
-#import tensorflow as tf
-#from tensorflow.keras import utils
-#from tensorflow.keras.optimizers import SGD, Adam
+import tensorflow as tf
+from tensorflow.keras import utils
+from tensorflow.keras.optimizers import SGD, Adam
 
-#import dataset.converter as converter
-#import dataset.helper.crps as crps
-#import dataset.shape as shape
+import dataset.converter as converter
+import dataset.helper.crps as crps
+import dataset.shape as shape
 import helper as helpers
-#import model.build_model as modelprovider
-#import model.loss_functions as loss
-
+import model.build_model as modelprovider
+import model.loss_functions as loss
 
 def main():
     #numpy_path='/home/elias/Nextcloud/1.Masterarbeit'
