@@ -55,7 +55,7 @@ def build_model(hp):
     model  = Model([inp1, inp2, inp3], outputs=x)
     lossfn = loss.crps_cost_function
 
-    opt = Adam(hp.Float('learning_rate', 1e-8, 0.5, default=0.002, sampling='log'), amsgrad=True)
+    opt = Adam(hp.Float('learning_rate', 1e-8, 0.1, default=0.002, sampling='log'), amsgrad=True)
     model.compile(loss=lossfn, optimizer=opt)
     return model
 
