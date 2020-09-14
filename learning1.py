@@ -42,8 +42,8 @@ def build_model(hp):
     x = Concatenate(axis=1)([model1, inp2, model3])
 
     # add the hiddden layers
-    nodes = hp.Choice('Combined_Hidden_Layer_nodes',[10,20,30,40,50,60,70,80,90,100,110,120,130,140,150], default=80)
-    numb= hp.Int('Number_of_hidden_Layers',0,5, default=3)
+    nodes = 100
+    numb= 3
     if(numb>0):
         for i in range(1,numb):
             x = Dense(nodes, activation=activation,
@@ -67,7 +67,7 @@ class MyTuner(kt.Hyperband):
     def run_trial(self, trial, *args, **kwargs):
         # You can add additional HyperParameters for preprocessing and custom training loops
         # via overriding `run_trial`
-        kwargs['batch_size'] = trial.hyperparameters.Choice('batch_size', [1,100,500,750,1000])
+        kwargs['batch_size'] = trial.hyperparameters.Choice('batch_size', [1])
         list(args)
         args1 = args[0].batch(kwargs['batch_size'])
         tuple(args1)
