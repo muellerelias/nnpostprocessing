@@ -20,16 +20,17 @@ import model.build_model as modelprovider
 import model.loss_functions as loss
 
 """
- - all, but no embeddings
+ - temperature + regime
 """
 
-expname = 'versuch-2'
+expname = 'versuch-5'
 numpy_path = '/root/Daten/vorverarbeitetNorm/'
 logdir = '/root/Tests/'
 batchsize = 1
 epochs = 30
 initial_epochs = 0
-learning_rate = 0.092545822863184
+learning_rate = 1.4632021825488089e-05
+
 
 
 def main():
@@ -161,7 +162,7 @@ def build_model(shape_vec, shape_mat):
     # add the hiddden layers
     x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_1" )( x )
     x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_2" )( x )
-    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_3" )( x )
+    #x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_3" )( x )
     x = Dense(   2 , activation='linear' , name="Output_Layer" )(x)
     # returns the Model
     return Model([inp1, inp2, inp3], outputs=x)
@@ -174,7 +175,7 @@ def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
     for item in data:
         input1.append( item[0][0] )
         input2.append(item[0][1:])
-        input3.append(item[1])
+        input3.append(item[1][:,16])
         label.append(item[2][0])
 
     dataset_input = tf.data.Dataset.from_tensor_slices((input1, input2, input3))
