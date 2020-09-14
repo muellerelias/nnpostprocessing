@@ -175,7 +175,7 @@ def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
     for item in data:
         input1.append(item[0][0] )
         input2.append(item[0][1:])
-        input3.append(item[1])
+        input3.append(item[1][:,16])
         label.append(item[2][0])
 
     dataset_input = tf.data.Dataset.from_tensor_slices((input1, input3))
