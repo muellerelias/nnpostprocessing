@@ -142,7 +142,8 @@ def main():
     
     result = [ test_score, ger_score, swe_score, spa_score, uk_score, rou_score]
     result = np.array(result)
-    np.save(os.path.join(logdir, expname)+'result.png', result)
+    np.save(os.path.join(logdir, expname, 'result'), result)
+    np.save(os.path.join(logdir, expname, 'prediction'), predictions)
     print(datetime.now()-start)
 
 def build_model(shape_vec, shape_mat):

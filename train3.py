@@ -89,16 +89,16 @@ def main():
         cp_callback = tf.keras.callbacks.ModelCheckpoint(
             os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint'), monitor='val_loss', save_weights_only=True, mode='min', save_best_only=True, verbose=0)
 
-        model.fit(
-            train_dataset,
-            epochs=epochs,
-            initial_epoch=initial_epochs,
-            batch_size=batchsize,
-            verbose=1,
-            validation_data=valid_dataset,
-            validation_batch_size=1000,
-            callbacks=[tensorboard_callback, cp_callback, cp_callback_versuch],
-        )
+        #model.fit(
+        #    train_dataset,
+        #    epochs=epochs,
+        #    initial_epoch=initial_epochs,
+        #    batch_size=batchsize,
+        #    verbose=1,
+        #    validation_data=valid_dataset,
+        #    validation_batch_size=1000,
+        #    callbacks=[tensorboard_callback, cp_callback, cp_callback_versuch],
+        #)
         model.load_weights(os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint'))
         
         predictions.append(model.predict(
@@ -197,3 +197,14 @@ def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
 if __name__ == "__main__":
     helpers.mkdir_not_exists(os.path.join(logdir, expname))
     main()
+
+
+"""
+All test score: 1.51
+Ger test score: 1.56
+SWE test score: 1.66
+SPA test score: 1.17
+ UK test score: 1.23
+ROU test score: 1.51
+3:08:18.901600
+"""
