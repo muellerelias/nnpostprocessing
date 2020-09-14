@@ -100,7 +100,7 @@ tuner.search(train_dataset,
              epochs=5,
              callbacks=[tf.keras.callbacks.EarlyStopping('val_loss', patience=3)])
 
-tuner.results_summary(num_trials=1)
+tuner.results_summary(num_trials=3)
 
 end = datetime.now()
 print(end-start)

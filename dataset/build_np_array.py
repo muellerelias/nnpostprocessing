@@ -15,7 +15,7 @@ from helper.date import convert_date
 
 parser = argparse.ArgumentParser(description='This is the inference script')
 
-parser.add_argument("--dataset_dir", dest="dataset_dir",
+parser.add_argument("--dataset_dir", dest="dataset_dir", metavar="FILE",
                     help="folder with glob where the dataset is")
 
 parser.add_argument("--np_dir", dest="np_dir", metavar="FILE",

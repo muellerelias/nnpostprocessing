@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import utils
+from tensorflow.keras.layers import (Activation, Concatenate, Dense, Embedding,
+                                     Flatten, Input, InputLayer)
+from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras.optimizers import SGD, Adam
 
 import dataset.converter as converter
@@ -16,74 +19,56 @@ import helper as helpers
 import model.build_model as modelprovider
 import model.loss_functions as loss
 
+"""
+ - all, but no embeddings
+"""
 
-parser = argparse.ArgumentParser(description='This is the training script')
-
-parser.add_argument("--exp_name", dest="name", required=True,
-                    help="name of the experiment", type=str)
-
-parser.add_argument("--data_numpy", dest="numpy_path",
-                    help="folder where the dataset is", metavar="FILE", default='/home/elias/Nextcloud/1.Masterarbeit/Daten/2020_MA_Elias/')
-
-parser.add_argument("--log_dir", dest="logdir",
-                    help="folder where tensorboard prints the logs", metavar="FILE", default='/home/elias/Nextcloud/1.Masterarbeit/Tests/')
-
-parser.add_argument("--learning_rate", dest="learningrate", type=float,
-                    help="Learning rate for the optimizer", default='0.002')
-
-parser.add_argument("--batch_size", dest="batchsize", type=int,
-                    help="batch size of the experiment", default='1')
-
-parser.add_argument("--epochs", dest="epochs", type=int,
-                    help="epoch count of the experiment", default='1')
-
-parser.add_argument("--initial_epochs", dest="initialepochs", type=int,
-                    help="initial epoch count of the experiment", default='0')
-
-parser.add_argument("--model", dest="modeltype",
-                    choices=['emp', 'single', 'multi'])
+expname = 'versuch-2'
+numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetNorm/'
+logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'
+batchsize = 1
+epochs = 30
+initial_epochs = 0
+learning_rate = 0.092545822863184
 
 
-args = parser.parse_args()
-
-
-def main(args):
+def main():
     start = datetime.now()
     # get the data
-    train_data = helpers.load_data(args.numpy_path, 'train_set.npy')
-    valid_data = helpers.load_data(args.numpy_path, 'valid_set.npy')
-    test_data = helpers.load_data(args.numpy_path, 'test_set.npy')
+    train_data = helpers.load_data(numpy_path, 'train_set.npy')
+    valid_data = helpers.load_data(numpy_path, 'valid_set.npy')
+    test_data = helpers.load_data(numpy_path, 'test_set.npy')
     test_data_labels = test_data[:, 2]
     test_data_labels = np.array([item[0] for item in test_data_labels])
     test_data_countries = test_data[:, 0]
     test_data_countries = np.array([item[0] for item in test_data_countries])
     
     # convert the data
-    train_dataset, train_shape = converter.convert_numpy_to_multi_input_dataset(
-        train_data, batchsize=args.batchsize, shuffle=1000, shape=True)
-    valid_dataset = converter.convert_numpy_to_multi_input_dataset(
+    train_dataset, train_shape = convert_dataset(
+        train_data, batchsize=batchsize, shuffle=1000, shape=True)
+    valid_dataset = convert_dataset(
         valid_data, batchsize=1000, shuffle=100)
-    test_dataset = converter.convert_numpy_to_multi_input_dataset(
+    test_dataset = convert_dataset(
         test_data, batchsize=1000)
 
-    model = modelprovider.build_multi_input_model(
+    model = build_model(
         train_shape[1], train_shape[2])
 
     # Loading the model
     # Print Model
     modelprovider.printModel(model, dir=os.path.join(
-        args.logdir, args.name), name=args.name+".png")
+        logdir, expname), name=expname+".png")
 
     # compiling the model
     lossfn = loss.crps_cost_function
-    opt = Adam(lr=args.learningrate, amsgrad=True)
+    opt = Adam(lr=learning_rate, amsgrad=True)
     model.compile(loss=lossfn, optimizer=opt)
 
     # Load model if exits
-    checkpoint_dir = os.path.join(args.logdir, args.name, 'checkpoints/')
+    checkpoint_dir = os.path.join(logdir, expname, 'checkpoints/')
 
     # setup Callbacks
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=os.path.join(args.logdir, args.name), update_freq='batch', histogram_freq=0, write_graph=True, write_images=False,
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=os.path.join(logdir, expname), update_freq='batch', histogram_freq=0, write_graph=True, write_images=False,
                                                           profile_batch=2)
 
 
@@ -92,7 +77,7 @@ def main(args):
     predictions = []
     for i in range(1, 11):
         print('Round number: '+str(i))
-        model = modelprovider.build_multi_input_model(
+        model = build_model(
             train_shape[1], train_shape[2])
         
         model.compile(loss=lossfn, optimizer=opt)
@@ -104,9 +89,9 @@ def main(args):
 
         model.fit(
             train_dataset,
-            epochs=args.epochs,
-            initial_epoch=args.initialepochs,
-            batch_size=args.batchsize,
+            epochs=epochs,
+            initial_epoch=initial_epochs,
+            batch_size=batchsize,
             verbose=1,
             validation_data=valid_dataset,
             validation_batch_size=1000,
@@ -154,12 +139,59 @@ def main(args):
     print(f'SPA test score: {spa_score}')
     print(f' UK test score: {uk_score}')
     print(f'ROU test score: {rou_score}')
-
-
-
-
+    
+    result = [ test_score, ger_score, swe_score, spa_score, uk_score, rou_score]
+    result = np.array(result)
+    np.save(os.path.join(logdir, expname)+'result.png', result)
     print(datetime.now()-start)
 
+def build_model(shape_vec, shape_mat):
+    # first branch for the
+    inp1 = Input(shape=(1,), name='Country_ID')
+    model1 = Embedding(24, 23, name='Country_Embedding')(inp1)
+    model1 = Flatten()(model1)
+    # second branch for the vector input
+    inp2 = Input(shape=shape_vec, name="Date_and_Regimes")
+    # third branch for the matrix input
+    inp3 = Input(shape=shape_mat, name="Ensemble")
+    model3 = Flatten()(inp3)
+    # concatenate the two inputs
+    x = Concatenate(axis=1)([model1, inp2, model3])
+    # add the hiddden layers
+    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_1" )( x )
+    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_2" )( x )
+    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_3" )( x )
+    x = Dense(   2 , activation='linear' , name="Output_Layer" )(x)
+    # returns the Model
+    return Model([inp1, inp2, inp3], outputs=x)
+
+def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
+    input1 = []
+    input2 = []
+    input3 = []
+    label = []
+    for item in data:
+        input1.append( item[0][0] )
+        input2.append(item[0][1:])
+        input3.append(item[1])
+        label.append(item[2][0])
+
+    dataset_input = tf.data.Dataset.from_tensor_slices((input1, input2, input3))
+    dataset_label = tf.data.Dataset.from_tensor_slices(label)
+
+    dataset = tf.data.Dataset.zip((dataset_input, dataset_label))
+    
+    if (shuffle != None):
+        dataset = dataset.shuffle(shuffle)
+
+    if (batchsize != None):
+        dataset = dataset.batch(batchsize)
+
+    if (shape):
+        return dataset, (input1[0].shape , input2[0].shape, input3[0].shape)
+    else:
+        return dataset
+
 if __name__ == "__main__":
-    helpers.mkdir_not_exists(os.path.join(args.logdir, args.name))
-    main(args)
+    helpers.mkdir_not_exists(os.path.join(logdir, expname))
+    main()

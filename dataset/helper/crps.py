@@ -8,4 +8,4 @@ def norm(label, pred):
     return ps.crps_gaussian(label, pred[0], pred[1])
 
 def norm_data(label, pred):
-    return ps.crps_gaussian(label, pred[0], pred[1])
+    return ps.crps_gaussian(label, pred[:,0], pred[:,1])

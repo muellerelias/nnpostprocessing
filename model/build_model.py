@@ -1,7 +1,7 @@
 from tensorflow.keras.layers import Activation, Dense, Input, Concatenate, Flatten, InputLayer, Embedding
 from tensorflow.keras.models import Model, Sequential
 import tensorflow as tf
-
+import os
 
 """
 Example: https://www.pyimagesearch.com/2019/02/04/keras-multiple-inputs-and-mixed-data/
@@ -20,42 +20,32 @@ def build_multi_input_model(shape_vec, shape_mat):
 
     # first branch for the
     inp1 = Input(shape=(1,), name='Country_ID')
-    model1 = Embedding(24, 20, name='Country_Embedding')(inp1)
+    model1 = Embedding(24, 23, name='Country_Embedding')(inp1)
     model1 = Flatten()(model1)
-    model1 = Dense(2, activation="linear",
-                   name="Embedding_Hidden_Layer")(model1)
 
     # second branch for the vector input
     inp2 = Input(shape=shape_vec, name="Date_and_Regimes")
-    model2 = Dense(30, activation="linear",
-                   name="Date_and_Regimes_Hidden_Layer_1")(inp2)
-    model2 = Dense(33, activation="linear",
-                   name="Date_and_Regimes_Hidden_Layer_2")(model2)
-    
+
     # third branch for the matrix input
     inp3 = Input(shape=shape_mat, name="Ensemble")
     model3 = Flatten()(inp3)
-    model3 = Dense(43, activation="linear",
-                   name="Ensemble_Hidden_Layer_1")(model3)
-    model3 = Dense(90, activation="linear",
-                   name="Ensemble_Hidden_Layer_2")(model3)
     
     # concatenate the two inputs
-    x = Concatenate(axis=1)([model1, model2, model3])
+    x = Concatenate(axis=1)([model1, inp2, model3])
 
     # add the hiddden layers
-    x = Dense( 48, activation='linear', name="Combined_Hidden_Layer_1")(x)
-    x = Dense( 91, activation='linear', name="Combined_Hidden_Layer_2")(x)
-    x = Dense( 62, activation='linear', name="Combined_Hidden_Layer_3")(x)#
+    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_1" )( x )
+    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_2" )( x )
+    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_3" )( x )
 
-    x = Dense(2, activation='linear', name="Output_Layer")(x)
+    x = Dense(   2 , activation='linear' , name="Output_Layer" )(x)
 
     # returns the Model
     return Model([inp1, inp2, inp3], outputs=x)
 
 
-def printModel(model, name='my_model.png'):
-    tf.keras.utils.plot_model(model, to_file=name, show_shapes=True,
+def printModel(model, dir='', name='my_model.png'):
+    tf.keras.utils.plot_model(model, to_file=os.path.join(dir , name), show_shapes=True,
                               show_layer_names=True, rankdir='TB', expand_nested=False, dpi=96)
 
 
@@ -261,7 +251,8 @@ def build_multi_input_model_only_temperature(shape_vec, shape_mat):
     return Model([inp1, inp2, inp3], outputs=x)
 
 def reset_weights(model):
-    session = K.get_session()
     for layer in model.layers: 
-        if hasattr(layer, 'kernel_initializer'):
-            layer.kernel.initializer.run(session=session)
+        if hasattr(layer,'init'):
+                input_dim = layer.input_shape[1]
+                new_weights = layer.init((input_dim, layer.output_dim),name='{}_W'.format(layer.name))
+                layer.trainable_weights[0].set_value(new_weights.get_value())
