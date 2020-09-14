@@ -20,16 +20,16 @@ import model.build_model as modelprovider
 import model.loss_functions as loss
 
 """
- - all, but no embeddings
+ - temperature + remaining NWP inputs
 """
 
-expname = 'versuch-2'
-numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetNorm/'
-logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'
+expname = 'versuch-4'
+numpy_path = '/root/Daten/vorverarbeitetNorm/'
+logdir = '/root/Tests/'
 batchsize = 1
 epochs = 30
 initial_epochs = 0
-learning_rate = 0.092545822863184
+learning_rate = 1.4632021825488089e-05
 
 
 def main():
@@ -142,29 +142,28 @@ def main():
     
     result = [ test_score, ger_score, swe_score, spa_score, uk_score, rou_score]
     result = np.array(result)
-    np.save(os.path.join(logdir, expname, 'result'), result)
-    np.save(os.path.join(logdir, expname, 'prediction'), predictions)
+    np.save(os.path.join(logdir, expname)+'result.png', result)
     print(datetime.now()-start)
 
 def build_model(shape_vec, shape_mat):
     # first branch for the
-    #inp1 = Input(shape=(1,), name='Country_ID')
-    #model1 = Embedding(24, 23, name='Country_Embedding')(inp1)
-    #model1 = Flatten()(model1)
+    inp1 = Input(shape=(1,), name='Country_ID')
+    model1 = Embedding(24, 23, name='Country_Embedding')(inp1)
+    model1 = Flatten()(model1)
     # second branch for the vector input
-    inp2 = Input(shape=shape_vec, name="Date_and_Regimes")
+    #inp2 = Input(shape=shape_vec, name="Date_and_Regimes")
     # third branch for the matrix input
     inp3 = Input(shape=shape_mat, name="Ensemble")
     model3 = Flatten()(inp3)
     # concatenate the two inputs
-    x = Concatenate(axis=1)([inp2, model3])
+    x = Concatenate(axis=1)([model1, model3])
     # add the hiddden layers
     x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_1" )( x )
     x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_2" )( x )
-    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_3" )( x )
+    # x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_3" )( x )
     x = Dense(   2 , activation='linear' , name="Output_Layer" )(x)
     # returns the Model
-    return Model([ inp2, inp3], outputs=x)
+    return Model([inp1, inp3], outputs=x)
 
 def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
     input1 = []
@@ -177,7 +176,7 @@ def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
         input3.append(item[1])
         label.append(item[2][0])
 
-    dataset_input = tf.data.Dataset.from_tensor_slices((input2, input3))
+    dataset_input = tf.data.Dataset.from_tensor_slices((input1, input3))
     dataset_label = tf.data.Dataset.from_tensor_slices(label)
 
     dataset = tf.data.Dataset.zip((dataset_input, dataset_label))
@@ -196,14 +195,3 @@ def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
 if __name__ == "__main__":
     helpers.mkdir_not_exists(os.path.join(logdir, expname))
     main()
-
-
-"""
-All test score: 1.53
-Ger test score: 1.56
-SWE test score: 1.71
-SPA test score: 1.18
- UK test score: 1.22
-ROU test score: 1.55
-6:16:59.863044
-"""
