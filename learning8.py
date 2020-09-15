@@ -39,7 +39,7 @@ def build_model(hp):
     model3 = Flatten()(inp3)
 
     # concatenate the two inputs
-    x = Concatenate(axis=1)([model1, inp2])
+    x = Concatenate(axis=1)([model1, inp2, model3])
 
     # add the hiddden layers
     nodes = 100
@@ -95,7 +95,7 @@ tuner = MyTuner(
     objective='val_loss',
     max_epochs=30,
     hyperband_iterations=5,
-    project_name='ganzesNetz11092020_8')
+    project_name='ganzesNetz15092020_8')
 
 #tuner.search(train_dataset,
 #             validation_data=valid_dataset,
