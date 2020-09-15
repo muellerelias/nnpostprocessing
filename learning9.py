@@ -95,12 +95,12 @@ tuner = MyTuner(
     objective='val_loss',
     max_epochs=30,
     hyperband_iterations=5,
-    project_name='ganzesNetz11092020_9')
+    project_name='ganzesNetz15092020_9')
 
-#tuner.search(train_dataset,
-#             validation_data=valid_dataset,
-#             epochs=5,
-#             callbacks=[tf.keras.callbacks.EarlyStopping('val_loss', patience=3)])
+tuner.search(train_dataset,
+             validation_data=valid_dataset,
+             epochs=5,
+             callbacks=[tf.keras.callbacks.EarlyStopping('val_loss', patience=3)])
 
 tuner.results_summary(num_trials=1)
 
