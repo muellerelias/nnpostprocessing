@@ -58,6 +58,8 @@ def main(args):
     test_data_countries = test_data[:, 0]
     test_data_countries = np.array([item[0] for item in test_data_countries])
     
+    test_data_feature_importance = np.random.shuffle(test_data[:,0])
+
     # convert the data
     train_dataset, train_shape = converter.convert_numpy_to_multi_input_dataset(
         train_data, batchsize=args.batchsize, shuffle=1000, shape=True)
