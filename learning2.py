@@ -22,7 +22,7 @@ import model.loss_functions as loss
 
 
 """
- - d
+ - all, but no embeddings
 """
 
 def build_model(hp):

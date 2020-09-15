@@ -197,3 +197,13 @@ def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
 if __name__ == "__main__":
     helpers.mkdir_not_exists(os.path.join(logdir, expname))
     main()
+
+
+"""
+All test score: 1.51
+Ger test score: 1.56
+SWE test score: 1.68
+SPA test score: 1.16
+ UK test score: 1.23
+ROU test score: 1.52
+"""

@@ -22,7 +22,7 @@ import model.loss_functions as loss
 
 
 """
- - all (regime + temperature + remaining NWP inputs)4
+ - all (regime + temperature + remaining NWP inputs)
 """
 
 def build_model(hp):

@@ -39,7 +39,7 @@ def build_model(hp):
     model3 = Flatten()(inp3)
 
     # concatenate the two inputs
-    x = Concatenate(axis=1)([model1, inp2])
+    x = Concatenate(axis=1)([model1, inp2, model3])
 
     # add the hiddden layers
     nodes = 100
