@@ -35,7 +35,7 @@ def build_model(hp):
     inp2 = Input(shape=(7,), name="Date_and_Regimes")
 
     # third branch for the matrix input
-    inp3 = Input(shape=(2,1), name="Ensemble")
+    inp3 = Input(shape=(2,19), name="Ensemble")
     model3 = Flatten()(inp3)
 
     # concatenate the two inputs
