@@ -8,6 +8,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
+ganzesNetz15092020_1/
 optimierer/
 build/
 develop-eggs/
