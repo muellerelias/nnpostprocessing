@@ -157,7 +157,7 @@ def build_model(shape_vec, shape_mat):
     #inp3 = Input(shape=shape_mat, name="Ensemble")
     #model3 = Flatten()(inp3)
     # concatenate the two inputs
-    x = Concatenate(axis=1)([model1, inp2, model3])
+    x = Concatenate(axis=1)([model1, inp2])
     # add the hiddden layers
     x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_1" )( x )
     x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_2" )( x )
