@@ -23,7 +23,7 @@ import model.loss_functions as loss
 
 """
  - regime, but no date
-"""
+""" 
 
 def build_model(hp):
     activation='linear'
@@ -43,7 +43,7 @@ def build_model(hp):
 
     # add the hiddden layers
     nodes = 100
-    numb = hp.Choice('Number_hidden_Layer',[1,2,3])
+    numb = 2
     if(numb>0):
         for i in range(1,numb):
             x = Dense(nodes, activation=activation,
@@ -95,12 +95,12 @@ tuner = MyTuner(
     objective='val_loss',
     max_epochs=30,
     hyperband_iterations=5,
-    project_name='ganzesNetz11092020_7')
+    project_name='ganzesNetz16092020_7')
 
-#tuner.search(train_dataset,
-#             validation_data=valid_dataset,
-#             epochs=5,
-#             callbacks=[tf.keras.callbacks.EarlyStopping('val_loss', patience=3)])
+tuner.search(train_dataset,
+             validation_data=valid_dataset,
+             epochs=5,
+             callbacks=[tf.keras.callbacks.EarlyStopping('val_loss', patience=3)])
 
 tuner.results_summary(num_trials=1)
 
