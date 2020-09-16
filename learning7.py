@@ -55,7 +55,7 @@ def build_model(hp):
     model  = Model([inp1, inp2, inp3], outputs=x)
     lossfn = loss.crps_cost_function
 
-    opt = Adam(hp.Float('learning_rate', 1e-8, 0.5, default=0.1025524430168661, sampling='log'), amsgrad=True)
+    opt = Adam(hp.Float('learning_rate', 1e-8, 0.2, default=0.002, sampling='log'), amsgrad=True)
     model.compile(loss=lossfn, optimizer=opt)
     return model
 
@@ -93,7 +93,7 @@ valid_dataset = converter.convert_numpy_to_multi_input_dataset_without_date(
 tuner = MyTuner(
     build_model,
     objective='val_loss',
-    max_epochs=30,
+    max_epochs=10,
     hyperband_iterations=5,
     project_name='ganzesNetz16092020_7')
 
