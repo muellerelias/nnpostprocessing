@@ -154,8 +154,8 @@ def build_model(shape_vec, shape_mat):
     # second branch for the vector input
     inp2 = Input(shape=shape_vec, name="Date_and_Regimes")
     # third branch for the matrix input
-    inp3 = Input(shape=shape_mat, name="Ensemble")
-    model3 = Flatten()(inp3)
+    #inp3 = Input(shape=shape_mat, name="Ensemble")
+    #model3 = Flatten()(inp3)
     # concatenate the two inputs
     x = Concatenate(axis=1)([model1, inp2, model3])
     # add the hiddden layers
@@ -164,7 +164,7 @@ def build_model(shape_vec, shape_mat):
     #x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_3" )( x )
     x = Dense(   2 , activation='linear' , name="Output_Layer" )(x)
     # returns the Model
-    return Model([inp1, inp2, inp3], outputs=x)
+    return Model([inp1, inp2], outputs=x)
 
 def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
     input1 = []
