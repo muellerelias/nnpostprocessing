@@ -20,10 +20,10 @@ import model.build_model as modelprovider
 import model.loss_functions as loss
 
 """
- - regime + remaining NWP inputs (no temperature)
+ - remaining NWP inputs (no regime, no temperature)
 """
 
-expname = 'versuch-8'
+expname = 'versuch-9'
 numpy_path = '/root/Daten/vorverarbeitetNorm/'
 logdir = '/root/Tests/'
 batchsize = 64
@@ -167,7 +167,7 @@ def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
     label = []
     for item in data:
         input1.append( item[0][0] )
-        input2.append(item[0][1:])
+        input2.append(item[0][1])
         input3.append(np.concatenate((item[1][:,:16],item[1][:,17:]),axis=1))
         label.append(item[2][0])
 
