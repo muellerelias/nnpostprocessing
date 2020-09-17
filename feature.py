@@ -20,19 +20,17 @@ import model.build_model as modelprovider
 import model.loss_functions as loss
 
 """
- - all
+Feature importance Country
 """
 
 expname = 'versuch-1'
-numpy_path = '/root/Daten/vorverarbeitetNorm/'
-logdir = '/root/Tests/'
-#numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetNorm/'
-#logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'
-batchsize = 64
+numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetNorm/'
+logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'
+batchsize = 1
 epochs = 30
 initial_epochs = 0
-learning_rate = 0.001 #7.35274727758453e-06
-train_model = True
+learning_rate = 7.35274727758453e-06
+train_model = False
 
 def main():
     start = datetime.now()
@@ -53,6 +51,7 @@ def main():
     test_dataset = convert_dataset(
         test_data, batchsize=1000)
 
+    
     model = build_model(
         train_shape[1], train_shape[2])
 
@@ -72,11 +71,10 @@ def main():
     # setup Callbacks
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=os.path.join(logdir, expname), update_freq='batch', histogram_freq=0, write_graph=True, write_images=False,
                                                           profile_batch=2)
-
-
     # begin with training
     print('[INFO] Starting training')
     predictions = []
+    predictions_feature = []
     for i in range(1, 11):
         print('Round number: '+str(i))
         model = build_model(
@@ -84,12 +82,14 @@ def main():
         
         model.compile(loss=lossfn, optimizer=opt)
 
+        test_dataset_feature = convert_dataset_feature_importance(
+            test_data, batchsize=1000)
         cp_callback_versuch = tf.keras.callbacks.ModelCheckpoint(
             os.path.join(checkpoint_dir, 'round-'+str(i)+'/')+"checkpoint_{epoch}", monitor='val_loss', save_weights_only=True, mode='min', verbose=0)
         cp_callback = tf.keras.callbacks.ModelCheckpoint(
             os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint'), monitor='val_loss', save_weights_only=True, mode='min', save_best_only=True, verbose=0)
-
-        if train_model:
+        
+        if train_model :
             model.fit(
                 train_dataset,
                 epochs=epochs,
@@ -100,35 +100,40 @@ def main():
                 validation_batch_size=1000,
                 callbacks=[tensorboard_callback, cp_callback, cp_callback_versuch],
             )
-        
+
         model.load_weights(os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint')).expect_partial()
         
         predictions.append(model.predict(
             test_dataset, batch_size=1000, verbose=0))
+        predictions_feature.append(model.predict(
+            test_dataset_feature, batch_size=1000, verbose=0))
+
 
     predictions = np.array(predictions)
+    predictions_feature = np.array(predictions_feature)
+
     # Make sure std is positive
     predictions[:, :, 1] = np.abs(predictions[:, :, 1])
-    mean_predictions = np.mean(predictions, 0)
-    test_crps = crps.norm_data(test_data_labels, mean_predictions)
+    predictions_feature[:, :, 1] = np.abs(predictions_feature[:, :, 1])
 
-    #print results
-    test_score = round(test_crps.mean()          , 2 )
-    result = []
+    mean_predictions = np.mean(predictions, 0)
+    mean_predictions_feature = np.mean(predictions_feature, 0)
+
+    test_crps = crps.norm_data(test_data_labels, mean_predictions)
+    test_crps_feature = crps.norm_data(test_data_labels, mean_predictions_feature)
+    test_score = round(1-test_crps_feature.mean()/test_crps.mean()          , 4 )
     print(('all',test_score))
-    for i in range(1,24):
+    for i in [8,16,2,5,21]:
         filter = test_data_countries==i
-        filter_data = test_crps[filter]
+        filter_data = test_crps_feature[filter]
+        filter_test = test_crps[filter]
         if len(filter_data)>0:
-            item = (i, round(np.array(filter_data).mean() , 2 ))
+            item = (i, round(1 -np.array(filter_data).mean()/np.array(filter_test).mean() , 4 ))
         else:
             item = (i, 0)
         print( item )
-        result.append( item )
 
-    result = np.array(result)
-    np.save(os.path.join(logdir, expname, 'result'), result)
-    np.save(os.path.join(logdir, expname, 'prediction'), predictions)
+
     print(datetime.now()-start)
 
 def build_model(shape_vec, shape_mat):
@@ -177,6 +182,46 @@ def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
         return dataset, (input1[0].shape , input2[0].shape, input3[0].shape)
     else:
         return dataset
+
+
+def convert_dataset_feature_importance(data, batchsize=None,  shuffle=None, shape=False):
+    input1 = []
+    input21 = []
+    input22 = []
+    input2 = []
+    input3 = []
+    label = []
+    for item in data:
+        input1.append( item[0][0] )
+        input21.append(np.array([item[0][1]] ))
+        input22.append(np.array(item[0][2:]))
+        #input2.append(item[0][1:])
+        input3.append(item[1])
+        label.append(item[2][0])
+    input21 = np.array(input21)
+    input22 = np.array(input22)
+    #np.random.shuffle(input22[:,0])
+    input2  = np.concatenate((input21, input22), axis=1)
+    input3 = np.array(input3)
+    np.random.shuffle(input3[:,:,16][:,1])
+
+    dataset_input = tf.data.Dataset.from_tensor_slices((input1, input2, input3))
+    dataset_label = tf.data.Dataset.from_tensor_slices(label)
+
+    dataset = tf.data.Dataset.zip((dataset_input, dataset_label))
+    
+    if (shuffle != None):
+        dataset = dataset.shuffle(shuffle)
+
+    if (batchsize != None):
+        dataset = dataset.batch(batchsize)
+
+    if (shape):
+        return dataset, (input1[0].shape , input2[0].shape, input3[0].shape)
+    else:
+        return dataset
+
+
 
 if __name__ == "__main__":
     helpers.mkdir_not_exists(os.path.join(logdir, expname))

@@ -55,7 +55,7 @@ def build_model(hp):
     model  = Model([inp1, inp2, inp3], outputs=x)
     lossfn = loss.crps_cost_function
 
-    opt = Adam(hp.Float('learning_rate', 1e-8, 0.1, default=0.002, sampling='log'), amsgrad=True)
+    opt = Adam(hp.Float('learning_rate', 1e-8, 1e-3, default=7.35274727758453e-06, sampling='log'), amsgrad=True)
     model.compile(loss=lossfn, optimizer=opt)
     return model
 
@@ -92,15 +92,15 @@ tuner = MyTuner(
     build_model,
     objective='val_loss',
     max_epochs=30,
-    hyperband_iterations=5,
-    project_name='ganzesNetz15092020_1')
+    hyperband_iterations=10,
+    project_name='ganzesNetz15092020_1_1')
 
 #tuner.search(train_dataset,
 #             validation_data=valid_dataset,
-#             epochs=5,
+#             epochs=10,
 #             callbacks=[tf.keras.callbacks.EarlyStopping('val_loss', patience=3)])
 
-tuner.results_summary(num_trials=3)
+tuner.results_summary(num_trials=1)
 
 end = datetime.now()
 print(end-start)
