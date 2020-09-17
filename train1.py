@@ -112,6 +112,33 @@ def main():
     mean_predictions = np.mean(predictions, 0)
     test_crps = crps.norm_data(test_data_labels, mean_predictions)
 
+        #print_country(mean_predictions, test_data_countries)
+    ger_data = []
+    swe_data = []
+    spa_data = []
+    uk_data  = []
+    rou_data = []
+    for i in range(len(test_data_countries)):
+        if test_data_countries[i]==8:
+            ger_data.append(test_crps[i])
+        if test_data_countries[i]==16:
+            swe_data.append(test_crps[i])
+        if test_data_countries[i]==2:
+            spa_data.append(test_crps[i])
+        if test_data_countries[i]==5:
+            uk_data.append(test_crps[i])
+        if test_data_countries[i]==21:
+            rou_data.append(test_crps[i])
+
+    ger_score =  round(np.array(ger_data).mean() , 2 )
+    swe_score =  round(np.array(swe_data).mean() , 2 )
+    spa_score =  round(np.array(spa_data).mean() , 2 )
+    uk_score  =  round(np.array(uk_data).mean()  , 2 )
+    rou_score =  round(np.array(rou_data).mean() , 2 )
+    test_score = round(test_crps.mean()          , 2 )
+
+    print(f'{test_score}&{ger_score}&{swe_score}&{spa_score}&{uk_score}&{rou_score}')
+    
     #print results
     test_score = round(test_crps.mean()          , 2 )
     result = []

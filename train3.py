@@ -31,7 +31,7 @@ logdir = '/root/Tests/'
 batchsize = 64
 epochs = 30
 initial_epochs = 0
-learning_rate = 0.001#0.00035486499330070876
+learning_rate = 0.001 #0.00035486499330070876
 
 
 def main():
