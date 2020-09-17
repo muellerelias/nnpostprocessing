@@ -155,7 +155,7 @@ def build_model(shape_vec, shape_mat):
     # add the hiddden layers
     x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_1" )( x )
     x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_2" )( x )
-    # x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_3" )( x )
+    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_3" )( x )
     x = Dense(   2 , activation='linear' , name="Output_Layer" )(x)
     # returns the Model
     return Model([inp1, inp3], outputs=x)
@@ -192,11 +192,3 @@ if __name__ == "__main__":
     main()
 
 
-"""
-All test score: 1.49
-Ger test score: 1.55
-SWE test score: 1.65
-SPA test score: 1.13
- UK test score: 1.19
-ROU test score: 1.52
-"""
