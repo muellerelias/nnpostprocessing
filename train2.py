@@ -134,7 +134,7 @@ def main():
     rou_score =  round(np.array(rou_data).mean() , 2 )
     test_score = round(test_crps.mean()          , 2 )
     
-    print(f'{test_score}&{ger_score}&{swe_score}&{spa_score}&{uk_score}&{rou_score}\\')
+    print(f'{test_score}&{ger_score}&{swe_score}&{spa_score}&{uk_score}&{rou_score}')
     
     result = [ test_score, ger_score, swe_score, spa_score, uk_score, rou_score]
     result = np.array(result)

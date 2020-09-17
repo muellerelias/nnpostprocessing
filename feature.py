@@ -30,13 +30,10 @@ batchsize = 1
 epochs = 30
 initial_epochs = 0
 learning_rate = 7.35274727758453e-06
-train_model = False
 
 def main():
     start = datetime.now()
     # get the data
-    train_data = helpers.load_data(numpy_path, 'train_set.npy')
-    valid_data = helpers.load_data(numpy_path, 'valid_set.npy')
     test_data = helpers.load_data(numpy_path, 'test_set.npy')
     test_data_labels = test_data[:, 2]
     test_data_labels = np.array([item[0] for item in test_data_labels])
@@ -44,32 +41,11 @@ def main():
     test_data_countries = np.array([item[0] for item in test_data_countries])
     
     # convert the data
-    train_dataset, train_shape = convert_dataset(
-        train_data, batchsize=batchsize, shuffle=1000, shape=True)
-    valid_dataset = convert_dataset(
-        valid_data, batchsize=1000, shuffle=100)
     test_dataset = convert_dataset(
         test_data, batchsize=1000)
 
-    
-    model = build_model(
-        train_shape[1], train_shape[2])
-
-    # Loading the model
-    # Print Model
-    modelprovider.printModel(model, dir=os.path.join(
-        logdir, expname), name=expname+".png")
-
-    # compiling the model
-    lossfn = loss.crps_cost_function
-    opt = Adam(lr=learning_rate, amsgrad=True)
-    model.compile(loss=lossfn, optimizer=opt)
-
     # Load model if exits
     checkpoint_dir = os.path.join(logdir, expname, 'checkpoints/')
-
-    # setup Callbacks
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=os.path.join(logdir, expname), update_freq='batch', histogram_freq=0, write_graph=True, write_images=False,
                                                           profile_batch=2)
     # begin with training
     print('[INFO] Starting training')
@@ -84,22 +60,6 @@ def main():
 
         test_dataset_feature = convert_dataset_feature_importance(
             test_data, batchsize=1000)
-        cp_callback_versuch = tf.keras.callbacks.ModelCheckpoint(
-            os.path.join(checkpoint_dir, 'round-'+str(i)+'/')+"checkpoint_{epoch}", monitor='val_loss', save_weights_only=True, mode='min', verbose=0)
-        cp_callback = tf.keras.callbacks.ModelCheckpoint(
-            os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint'), monitor='val_loss', save_weights_only=True, mode='min', save_best_only=True, verbose=0)
-        
-        if train_model :
-            model.fit(
-                train_dataset,
-                epochs=epochs,
-                initial_epoch=initial_epochs,
-                batch_size=batchsize,
-                verbose=1,
-                validation_data=valid_dataset,
-                validation_batch_size=1000,
-                callbacks=[tensorboard_callback, cp_callback, cp_callback_versuch],
-            )
 
         model.load_weights(os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint')).expect_partial()
         

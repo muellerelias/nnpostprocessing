@@ -28,10 +28,10 @@ expname = 'versuch-3'
 numpy_path = '/root/Daten/vorverarbeitetNorm/'
 #logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'
 logdir = '/root/Tests/'
-batchsize = 1
-epochs = 10
+batchsize = 64
+epochs = 30
 initial_epochs = 0
-learning_rate = 0.00035486499330070876
+learning_rate = 0.001#0.00035486499330070876
 
 
 def main():
@@ -134,16 +134,11 @@ def main():
     rou_score =  round(np.array(rou_data).mean() , 2 )
     test_score = round(test_crps.mean()          , 2 )
 
-    
-    print(f'All test score: {test_score}')
-    print(f'Ger test score: {ger_score}')
-    print(f'SWE test score: {swe_score}')
-    print(f'SPA test score: {spa_score}')
-    print(f' UK test score: {uk_score}')
-    print(f'ROU test score: {rou_score}')
-    
+    print(f'{test_score}&{ger_score}&{swe_score}&{spa_score}&{uk_score}&{rou_score}')
+
     result = [ test_score, ger_score, swe_score, spa_score, uk_score, rou_score]
     result = np.array(result)
+
     np.save(os.path.join(logdir, expname, 'result'), result)
     np.save(os.path.join(logdir, expname, 'prediction'), predictions)
     print(datetime.now()-start)
