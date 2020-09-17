@@ -24,12 +24,14 @@ import model.loss_functions as loss
 """
 
 expname = 'versuch-2'
-numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetNorm/'
-logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'
-batchsize = 1
+#numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetNorm/'
+#logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'
+numpy_path = '/root/Daten/vorverarbeitetNorm/'
+logdir = '/root/Tests/'
+batchsize = 64
 epochs = 30
 initial_epochs = 0
-learning_rate = 0.092545822863184
+learning_rate = 0.001 #7.35274727758453e-06
 
 
 def main():
@@ -87,16 +89,16 @@ def main():
         cp_callback = tf.keras.callbacks.ModelCheckpoint(
             os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint'), monitor='val_loss', save_weights_only=True, mode='min', save_best_only=True, verbose=0)
 
-        #model.fit(
-        #    train_dataset,
-        #    epochs=epochs,
-        #    initial_epoch=initial_epochs,
-        #    batch_size=batchsize,
-        #    verbose=1,
-        #    validation_data=valid_dataset,
-        #    validation_batch_size=1000,
-        #    callbacks=[tensorboard_callback, cp_callback, cp_callback_versuch],
-        #)
+        model.fit(
+            train_dataset,
+            epochs=epochs,
+            initial_epoch=initial_epochs,
+            batch_size=batchsize,
+            verbose=1,
+            validation_data=valid_dataset,
+            validation_batch_size=1000,
+            callbacks=[tensorboard_callback, cp_callback, cp_callback_versuch],
+        )
         model.load_weights(os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint'))
         
         predictions.append(model.predict(
@@ -132,12 +134,7 @@ def main():
     rou_score =  round(np.array(rou_data).mean() , 2 )
     test_score = round(test_crps.mean()          , 2 )
     
-    print(f'All test score: {test_score}')
-    print(f'Ger test score: {ger_score}')
-    print(f'SWE test score: {swe_score}')
-    print(f'SPA test score: {spa_score}')
-    print(f' UK test score: {uk_score}')
-    print(f'ROU test score: {rou_score}')
+    print(f'{test_score}&{ger_score}&{swe_score}&{spa_score}&{uk_score}&{rou_score}\\')
     
     result = [ test_score, ger_score, swe_score, spa_score, uk_score, rou_score]
     result = np.array(result)
@@ -195,14 +192,3 @@ def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
 if __name__ == "__main__":
     helpers.mkdir_not_exists(os.path.join(logdir, expname))
     main()
-
-
-"""
-All test score: 1.53
-Ger test score: 1.56
-SWE test score: 1.71
-SPA test score: 1.18
- UK test score: 1.22
-ROU test score: 1.55
-6:16:59.863044
-"""
