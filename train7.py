@@ -26,10 +26,10 @@ import model.loss_functions as loss
 expname = 'versuch-7'
 numpy_path = '/root/Daten/vorverarbeitetNorm/'
 logdir = '/root/Tests/'
-batchsize = 1
-epochs = 10
-initial_epochs = 4
-learning_rate = 0.45177697155014246
+batchsize = 64
+epochs = 30
+initial_epochs = 0
+learning_rate = 0.001 #0.45177697155014246
 
 
 def main():
@@ -132,13 +132,7 @@ def main():
     rou_score =  round(np.array(rou_data).mean() , 2 )
     test_score = round(test_crps.mean()          , 2 )
 
-    
-    print(f'All test score: {test_score}')
-    print(f'Ger test score: {ger_score}')
-    print(f'SWE test score: {swe_score}')
-    print(f'SPA test score: {spa_score}')
-    print(f' UK test score: {uk_score}')
-    print(f'ROU test score: {rou_score}')
+    print(f'{test_score}&{ger_score}&{swe_score}&{spa_score}&{uk_score}&{rou_score}')
     
     result = [ test_score, ger_score, swe_score, spa_score, uk_score, rou_score]
     result = np.array(result)
@@ -161,7 +155,7 @@ def build_model(shape_vec, shape_mat):
     # add the hiddden layers
     x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_1" )( x )
     x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_2" )( x )
-    #x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_3" )( x )
+    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_3" )( x )
     x = Dense(   2 , activation='linear' , name="Output_Layer" )(x)
     # returns the Model
     return Model([inp1, inp2], outputs=x)
