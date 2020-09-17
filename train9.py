@@ -146,7 +146,7 @@ def build_model(shape_vec, shape_mat):
     model1 = Embedding(24, 23, name='Country_Embedding')(inp1)
     model1 = Flatten()(model1)
     # second branch for the vector input
-    inp2 = Input(shape=shape_vec, name="Date_and_Regimes")
+    inp2 = Input(shape=(1,), name="Date_and_Regimes")
     # third branch for the matrix input
     inp3 = Input(shape=shape_mat, name="Ensemble")
     model3 = Flatten()(inp3)
