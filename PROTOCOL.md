@@ -41,3 +41,26 @@
 ## 21.09.2020 09:30 Präsentation
 - Englisch
 - 30 Minuten
+
+
+ä Regime feature importance
+## nur Regime Model
+# alle Inputs
+# z_500 mischen ist für Regime am wichtigsten
+# Berechnung mit  5 Tagen
+# Berechnung mit 15 Tagen
+
+# kann es den skill verbessern
+# wie viel temperatur steckt in den Regime Vektor
+
+# Sommer / Winter
+
+500hpa circa 5km
+wetterregime bildet wetter über 5 Tage
+Geopotential zeitlich glättet
+Mittel über 30 Jahre zeitraum
+Differnz über zwischen klimathologie und instantial werte
+EOF Anaylse, 80% werden dadurch erklärt
+
+Langanhaltende stationäre wetterlagen ausgedrückt durch das geopotential 500
+Sagt auch räumliche struktur

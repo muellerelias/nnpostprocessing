@@ -20,16 +20,16 @@ import model.build_model as modelprovider
 import model.loss_functions as loss
 
 """
- - all, but no embeddings
+ - Country + Date
 """
 
-expname = 'versuch-2'
+expname = 'versuch-10'
 numpy_path = '/root/Daten/vorverarbeitetNorm/'
 logdir = '/root/Tests/'
-batchsize = 1
+batchsize = 64
 epochs = 30
 initial_epochs = 0
-learning_rate = 0.092545822863184
+learning_rate = 0.001 #0.45177697155014246
 
 
 def main():
@@ -132,13 +132,7 @@ def main():
     rou_score =  round(np.array(rou_data).mean() , 2 )
     test_score = round(test_crps.mean()          , 2 )
 
-    
-    print(f'All test score: {test_score}')
-    print(f'Ger test score: {ger_score}')
-    print(f'SWE test score: {swe_score}')
-    print(f'SPA test score: {spa_score}')
-    print(f' UK test score: {uk_score}')
-    print(f'ROU test score: {rou_score}')
+    print(f'{test_score}&{ger_score}&{swe_score}&{spa_score}&{uk_score}&{rou_score}')
     
     result = [ test_score, ger_score, swe_score, spa_score, uk_score, rou_score]
     result = np.array(result)
@@ -152,19 +146,19 @@ def build_model(shape_vec, shape_mat):
     model1 = Embedding(24, 23, name='Country_Embedding')(inp1)
     model1 = Flatten()(model1)
     # second branch for the vector input
-    inp2 = Input(shape=shape_vec, name="Date_and_Regimes")
+    inp2 = Input(shape=(1,), name="Date_and_Regimes")
     # third branch for the matrix input
-    inp3 = Input(shape=shape_mat, name="Ensemble")
-    model3 = Flatten()(inp3)
+    #inp3 = Input(shape=shape_mat, name="Ensemble")
+    #model3 = Flatten()(inp3)
     # concatenate the two inputs
-    x = Concatenate(axis=1)([model1, inp2, model3])
+    x = Concatenate(axis=1)([model1, inp2])
     # add the hiddden layers
     x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_1" )( x )
     x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_2" )( x )
     x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_3" )( x )
     x = Dense(   2 , activation='linear' , name="Output_Layer" )(x)
     # returns the Model
-    return Model([inp1, inp2, inp3], outputs=x)
+    return Model([inp1, inp2], outputs=x)
 
 def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
     input1 = []
@@ -173,11 +167,12 @@ def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
     label = []
     for item in data:
         input1.append( item[0][0] )
-        input2.append(item[0][1:])
-        input3.append(item[1])
+        input2.append(item[0][1])
+        input3.append(np.concatenate((item[1][:,:16],item[1][:,17:]),axis=1))
+        label.append(item[2][0])
         label.append(item[2][0])
 
-    dataset_input = tf.data.Dataset.from_tensor_slices((input1, input2, input3))
+    dataset_input = tf.data.Dataset.from_tensor_slices((input1, input2))
     dataset_label = tf.data.Dataset.from_tensor_slices(label)
 
     dataset = tf.data.Dataset.zip((dataset_input, dataset_label))
@@ -196,3 +191,6 @@ def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
 if __name__ == "__main__":
     helpers.mkdir_not_exists(os.path.join(logdir, expname))
     main()
+
+
+a[0,0,0]+a[1,0,0]+a[2,0,0]+a[3,0,0]+a[4,0,0]+a[5,0,0]+a[6,0,0]+a[7,0,0]+a[8,0,0]+a[9,0,0]

@@ -46,7 +46,6 @@ def main():
 
     # Load model if exits
     checkpoint_dir = os.path.join(logdir, expname, 'checkpoints/')
-                                                          profile_batch=2)
     # begin with training
     print('[INFO] Starting training')
     predictions = []
@@ -54,9 +53,9 @@ def main():
     for i in range(1, 11):
         print('Round number: '+str(i))
         model = build_model(
-            train_shape[1], train_shape[2])
+            (8,), (2,19))
         
-        model.compile(loss=lossfn, optimizer=opt)
+        model.compile(loss=loss.crps_cost_function, optimizer=Adam())
 
         test_dataset_feature = convert_dataset_feature_importance(
             test_data, batchsize=1000)
@@ -81,19 +80,17 @@ def main():
 
     test_crps = crps.norm_data(test_data_labels, mean_predictions)
     test_crps_feature = crps.norm_data(test_data_labels, mean_predictions_feature)
-    test_score = round(1-test_crps_feature.mean()/test_crps.mean()          , 4 )
-    print(('all',test_score))
+    test_score = round((1-test_crps_feature.mean()/test_crps.mean()   )*100     , 2 )
+    print(test_crps_feature.mean())
+    result ='&'+str(test_score)+'\%' 
     for i in [8,16,2,5,21]:
         filter = test_data_countries==i
         filter_data = test_crps_feature[filter]
         filter_test = test_crps[filter]
-        if len(filter_data)>0:
-            item = (i, round(1 -np.array(filter_data).mean()/np.array(filter_test).mean() , 4 ))
-        else:
-            item = (i, 0)
-        print( item )
+        item = round((1 -np.array(filter_data).mean()/np.array(filter_test).mean() )*100, 2 )
+        result = result +'&'+str(item)+'\%'
 
-
+    print(result)
     print(datetime.now()-start)
 
 def build_model(shape_vec, shape_mat):
@@ -158,11 +155,21 @@ def convert_dataset_feature_importance(data, batchsize=None,  shuffle=None, shap
         #input2.append(item[0][1:])
         input3.append(item[1])
         label.append(item[2][0])
+
     input21 = np.array(input21)
     input22 = np.array(input22)
-    #np.random.shuffle(input22[:,0])
+    np.random.shuffle(input22[:,0])
+    np.random.shuffle(input22[:,1])
+    np.random.shuffle(input22[:,2])
+    np.random.shuffle(input22[:,3])
+    np.random.shuffle(input22[:,4])
+    np.random.shuffle(input22[:,5])
+    #np.random.shuffle(input22[:,6])
+
     input2  = np.concatenate((input21, input22), axis=1)
+
     input3 = np.array(input3)
+    #np.random.shuffle(input3)
     np.random.shuffle(input3[:,:,16][:,1])
 
     dataset_input = tf.data.Dataset.from_tensor_slices((input1, input2, input3))
@@ -186,3 +193,7 @@ def convert_dataset_feature_importance(data, batchsize=None,  shuffle=None, shap
 if __name__ == "__main__":
     helpers.mkdir_not_exists(os.path.join(logdir, expname))
     main()
+"""
+hyper: regime individual:1.588302287788153
+regime individual: 1.5185716741396715
+"""

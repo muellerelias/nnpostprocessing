@@ -23,15 +23,15 @@ import model.loss_functions as loss
  - all
 """
 
-expname = 'versuch-1'
-numpy_path = '/root/Daten/vorverarbeitetNorm/'
-logdir = '/root/Tests/'
-#numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetNorm/'
-#logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'
-batchsize = 64
+expname = 'versuch-1-relu-softmax-batch1'
+#numpy_path = '/root/Daten/vorverarbeitetNorm/'
+#logdir = '/root/Tests/'
+numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetNorm/'
+logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'
+batchsize = 1
 epochs = 30
 initial_epochs = 0
-learning_rate = 0.001 #7.35274727758453e-06
+learning_rate = 7.35274727758453e-06 #0.001 
 train_model = True
 
 def main():
@@ -147,9 +147,10 @@ def main():
         filter = test_data_countries==i
         filter_data = test_crps[filter]
         if len(filter_data)>0:
-            item = (i, round(np.array(filter_data).mean() , 2 ))
-        else:
-            item = (i, 0)
+        #    item = (i, round(np.array(filter_data).mean() , 2 ))
+            item = round(np.array(filter_data).mean() , 2 )
+        #else:
+        #    item = (i, 0)
         print( item )
         result.append( item )
 
@@ -171,10 +172,10 @@ def build_model(shape_vec, shape_mat):
     # concatenate the two inputs
     x = Concatenate(axis=1)([model1, inp2, model3])
     # add the hiddden layers
-    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_1" )( x )
-    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_2" )( x )
-    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_3" )( x )
-    x = Dense(   2 , activation='linear' , name="Output_Layer" )(x)
+    x = Dense( 100 , activation='softmax' , name="Combined_Hidden_Layer_1" )( x )
+    x = Dense( 100 , activation='relu'    , name="Combined_Hidden_Layer_2" )( x )
+    x = Dense( 100 , activation='selu'    , name="Combined_Hidden_Layer_3" )( x )
+    x = Dense(   2 , activation='linear'  , name="Output_Layer" )(x)
     # returns the Model
     return Model([inp1, inp2, inp3], outputs=x)
 
