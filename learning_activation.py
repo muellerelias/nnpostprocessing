@@ -82,7 +82,7 @@ class MyTuner(kt.Hyperband):
     def run_trial(self, trial, *args, **kwargs):
         # You can add additional HyperParameters for preprocessing and custom training loops
         # via overriding `run_trial`
-        kwargs['batch_size'] = trial.hyperparameters.Choice('batch_size', [1])
+        kwargs['batch_size'] = trial.hyperparameters.Choice('batch_size', [1, 64, 256,512,1024])
         list(args)
         args1 = args[0].batch(kwargs['batch_size'])
         tuple(args1)
