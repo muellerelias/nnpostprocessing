@@ -107,7 +107,7 @@ tuner = MyTuner(
     objective='val_loss',
     max_epochs=30,
     hyperband_iterations=5,
-    project_name='ganzesNetz14092020_1')
+    project_name='activation_lr')
 
 tuner.search(train_dataset,
              validation_data=valid_dataset,

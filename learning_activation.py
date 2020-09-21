@@ -62,6 +62,7 @@ def build_model(hp):
 
     x = Dense(2, activation=activation, name="Output_Layer")(x)
 
+
     # returns the Model
     model = Model([inp1, inp2, inp3], outputs=x)
     lossfn = loss.crps_cost_function
@@ -109,7 +110,7 @@ tuner = MyTuner(
     objective='val_loss',
     max_epochs=30,
     hyperband_iterations=5,
-    project_name='ganzesNetz14092020_1')
+    project_name='activation')
 
 tuner.search(train_dataset,
              validation_data=valid_dataset,
