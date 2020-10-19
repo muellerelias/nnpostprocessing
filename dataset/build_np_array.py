@@ -41,15 +41,16 @@ def main(args):
     # read all data and concat the train set for mean and std
     for path in fileglob:
         df = pd.read_csv(path,  index_col=0)
-        train_set_all.append(
-            df[(df['init date'] > '1997-01-01') & (df['init date'] < '2008-12-31')])
-        train_set.append(df[(df['init date'] > '1997-01-01')
-                            & (df['init date'] < '2008-12-31')].to_numpy())
-        valid_set.append(df[(df['init date'] > '2009-01-01')
-                            & (df['init date'] < '2012-12-31')].to_numpy())
-        test_set.append(df[(df['init date'] > '2013-01-01')
+        train = df[(df['init date'] > '1997-01-01') 
+                            & (df['init date'] < '2009-12-31')]
+        valid_set.append(df[(df['init date'] > '2010-01-01')
+                            & (df['init date'] < '2013-12-31')].to_numpy())
+        test_set.append(df[(df['init date'] > '2014-01-01')
                            & (df['init date'] < '2017-12-31')].to_numpy())
 
+        train_set_all.append(train)
+        train_set.append(train.to_numpy())
+    
     print('[INFO] starting calculating mean and std...')
 
     # calculate mean and std
@@ -79,7 +80,7 @@ def main(args):
     print('[INFO] starting saving dataset split..')
     np.save(os.path.join(args.np_dir, 'train_set.npy'), train_set)
     np.save(os.path.join(args.np_dir, 'valid_set.npy'), valid_set)
-    np.save(os.path.join(args.np_dir, 'test_set.npy'), valid_set)
+    np.save(os.path.join(args.np_dir, 'test_set.npy'), test_set)
     end = datetime.now()
     print(end-start)
     print('[INFO] Finished')
@@ -93,19 +94,21 @@ def convert_to_model_data(set, mean, std):
         date = convert_date(set[0][i][0])
         country = convert_country(set[0][i][1])
         matrix_data = []
-
-        vector_data = (set[0][i][25:32]-mean[25:32])/std[25:32]
+        regime_data = []
+        
         for file in set:
             matrix_data.append((file[i][6:25]-mean[6:25])/std[6:25])
+            regime_data.append(file[i][25:32]) #(set[0][i][25:32]-mean[25:32])/std[25:32] 
 
         label = np.array(set[0][i][2:6], dtype='float64')
 
-        vector = np.array(
-            np.append([country, date], vector_data), dtype='float64')
+        regime_data = np.array(regime_data, dtype='float64')
+        vector = np.concatenate((np.array([country, date]), regime_data.mean(axis=0), regime_data.std(axis=0)), axis=0)
         matrix_data = np.array(matrix_data, dtype='float64')
+
         matrix = np.array(
             [matrix_data.mean(axis=0), matrix_data.std(axis=0)], dtype='float64')
-
+        
         ensemble = []
         for file in set:
             ensemble.append(file[i][22])
@@ -117,6 +120,7 @@ def convert_to_model_data(set, mean, std):
         row.append(label)
         row.append(Crps)
         row.append(verificationRank(set[0][i][2], ensemble))
+        row.append(datetime.strptime(set[0][i][0],'%Y-%m-%d').month)
         data.append(row)
     
     print('[INFO] Finished processing data')

@@ -24,12 +24,13 @@ import model.loss_functions as loss
 """
 
 expname = 'versuch-10'
-numpy_path = '/root/Daten/vorverarbeitetNorm/'
-logdir = '/root/Tests/'
-batchsize = 64
+numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetRegime/'
+logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'
+batchsize = 256
 epochs = 30
 initial_epochs = 0
 learning_rate = 0.001 #0.45177697155014246
+train_model = True
 
 
 def main():
@@ -87,17 +88,18 @@ def main():
         cp_callback = tf.keras.callbacks.ModelCheckpoint(
             os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint'), monitor='val_loss', save_weights_only=True, mode='min', save_best_only=True, verbose=0)
 
-        model.fit(
-            train_dataset,
-            epochs=epochs,
-            initial_epoch=initial_epochs,
-            batch_size=batchsize,
-            verbose=1,
-            validation_data=valid_dataset,
-            validation_batch_size=1000,
-            callbacks=[tensorboard_callback, cp_callback, cp_callback_versuch],
-        )
-        model.load_weights(os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint'))
+        if train_model:
+            model.fit(
+                train_dataset,
+                epochs=epochs,
+                initial_epoch=initial_epochs,
+                batch_size=batchsize,
+                verbose=1,
+                validation_data=valid_dataset,
+                validation_batch_size=1000,
+                callbacks=[tensorboard_callback, cp_callback, cp_callback_versuch],
+            )
+        model.load_weights(os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint')).expect_partial()
         
         predictions.append(model.predict(
             test_dataset, batch_size=1000, verbose=0))
@@ -122,7 +124,7 @@ def main():
             spa_data.append(test_crps[i])
         if test_data_countries[i]==5:
             uk_data.append(test_crps[i])
-        if test_data_countries[i]==21:
+        if test_data_countries[i]==20:
             rou_data.append(test_crps[i])
 
     ger_score =  round(np.array(ger_data).mean() , 2 )
@@ -153,10 +155,10 @@ def build_model(shape_vec, shape_mat):
     # concatenate the two inputs
     x = Concatenate(axis=1)([model1, inp2])
     # add the hiddden layers
-    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_1" )( x )
-    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_2" )( x )
-    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_3" )( x )
-    x = Dense(   2 , activation='linear' , name="Output_Layer" )(x)
+    x = Dense( 100 , activation='softmax' , name="Combined_Hidden_Layer_1" )( x )
+    x = Dense( 100 , activation='relu'    , name="Combined_Hidden_Layer_2" )( x )
+    x = Dense( 100 , activation='selu'    , name="Combined_Hidden_Layer_3" )( x )
+    x = Dense(   2 , activation='linear'  , name="Output_Layer" )(x)
     # returns the Model
     return Model([inp1, inp2], outputs=x)
 
@@ -191,6 +193,3 @@ def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
 if __name__ == "__main__":
     helpers.mkdir_not_exists(os.path.join(logdir, expname))
     main()
-
-
-a[0,0,0]+a[1,0,0]+a[2,0,0]+a[3,0,0]+a[4,0,0]+a[5,0,0]+a[6,0,0]+a[7,0,0]+a[8,0,0]+a[9,0,0]

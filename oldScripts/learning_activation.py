@@ -115,7 +115,7 @@ tuner = MyTuner(
 #tuner.search(train_dataset,
 #             validation_data=valid_dataset,
 #             epochs=5,
-#             callbacks=[tf.keras.callbacks.EarlyStopping('val_loss', patience=3)])
+#             callbacks=[d])
 
 tuner.results_summary(num_trials=3)
 

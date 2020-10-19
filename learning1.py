@@ -29,10 +29,10 @@ def build_model(hp):
     activation='linear'
     
     inp1 = Input(shape=(1,), name='Country_ID')
-    model1 = Embedding(24, 23, name='Country_Embedding')(inp1)
+    model1 = Embedding(23, 22, name='Country_Embedding')(inp1)
     model1 = Flatten()(model1)
 
-    inp2 = Input(shape=(8,), name="Date_and_Regimes")
+    inp2 = Input(shape=(15,), name="Date_and_Regimes")
 
     # third branch for the matrix input
     inp3 = Input(shape=(2,19), name="Ensemble")
@@ -67,7 +67,7 @@ class MyTuner(kt.Hyperband):
     def run_trial(self, trial, *args, **kwargs):
         # You can add additional HyperParameters for preprocessing and custom training loops
         # via overriding `run_trial`
-        kwargs['batch_size'] = trial.hyperparameters.Choice('batch_size', [1])
+        kwargs['batch_size'] = trial.hyperparameters.Choice('batch_size', [1,4,8,16,32,64,128,256,512,1024])
         list(args)
         args1 = args[0].batch(kwargs['batch_size'])
         tuple(args1)
@@ -78,9 +78,9 @@ Start with the script
 start = datetime.now()
 # get the data
 train_data = helpers.load_data(
-    '/root/Daten/vorverarbeitetNorm/','train_set.npy')
+    '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetRegime/','train_set.npy')
 valid_data = helpers.load_data(
-    '/root/Daten/vorverarbeitetNorm/','valid_set.npy')
+    '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetRegime/','valid_set.npy')
 
 train_dataset = converter.convert_numpy_to_multi_input_dataset(
     train_data, shuffle=1000)

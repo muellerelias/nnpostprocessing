@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 from datetime import datetime
+import pyperclip
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,16 +21,12 @@ import model.build_model as modelprovider
 import model.loss_functions as loss
 
 """
-Feature importance Country
+Feature importance 
 """
 
 expname = 'versuch-1'
-numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetNorm/'
+numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetRegime/'
 logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'
-batchsize = 1
-epochs = 30
-initial_epochs = 0
-learning_rate = 7.35274727758453e-06
 
 def main():
     start = datetime.now()
@@ -48,55 +45,58 @@ def main():
     checkpoint_dir = os.path.join(logdir, expname, 'checkpoints/')
     # begin with training
     print('[INFO] Starting training')
-    predictions = []
-    predictions_feature = []
-    for i in range(1, 11):
-        print('Round number: '+str(i))
-        model = build_model(
-            (8,), (2,19))
-        
-        model.compile(loss=loss.crps_cost_function, optimizer=Adam())
-
+    for a in range(1,8):
+        #print(a)
+        predictions = []
+        predictions_feature = []
         test_dataset_feature = convert_dataset_feature_importance(
-            test_data, batchsize=1000)
-
-        model.load_weights(os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint')).expect_partial()
+            test_data, a, batchsize=1000)
         
-        predictions.append(model.predict(
-            test_dataset, batch_size=1000, verbose=0))
-        predictions_feature.append(model.predict(
-            test_dataset_feature, batch_size=1000, verbose=0))
+        for i in range(1, 11):
+            #print('Round number: '+str(i))
+            model = build_model(
+                (15,), (2,19))
+            
+            model.compile(loss=loss.crps_cost_function, optimizer=Adam())
 
 
-    predictions = np.array(predictions)
-    predictions_feature = np.array(predictions_feature)
+            model.load_weights(os.path.join(checkpoint_dir, 'round-'+str(i)+'/best_checkpoint')).expect_partial()
+            
+            predictions.append(model.predict(
+                test_dataset, batch_size=1000, verbose=0))
+            predictions_feature.append(model.predict(
+                test_dataset_feature, batch_size=1000, verbose=0))
 
-    # Make sure std is positive
-    predictions[:, :, 1] = np.abs(predictions[:, :, 1])
-    predictions_feature[:, :, 1] = np.abs(predictions_feature[:, :, 1])
 
-    mean_predictions = np.mean(predictions, 0)
-    mean_predictions_feature = np.mean(predictions_feature, 0)
+        predictions = np.array(predictions)
+        predictions_feature = np.array(predictions_feature)
 
-    test_crps = crps.norm_data(test_data_labels, mean_predictions)
-    test_crps_feature = crps.norm_data(test_data_labels, mean_predictions_feature)
-    test_score = round((1-test_crps_feature.mean()/test_crps.mean()   )*100     , 2 )
-    print(test_crps_feature.mean())
-    result ='&'+str(test_score)+'\%' 
-    for i in [8,16,2,5,21]:
-        filter = test_data_countries==i
-        filter_data = test_crps_feature[filter]
-        filter_test = test_crps[filter]
-        item = round((1 -np.array(filter_data).mean()/np.array(filter_test).mean() )*100, 2 )
-        result = result +'&'+str(item)+'\%'
+        # Make sure std is positive
+        predictions[:, :, 1] = np.abs(predictions[:, :, 1])
+        predictions_feature[:, :, 1] = np.abs(predictions_feature[:, :, 1])
 
-    print(result)
+        mean_predictions = np.mean(predictions, 0)
+        mean_predictions_feature = np.mean(predictions_feature, 0)
+
+        test_crps = crps.norm_data(test_data_labels, mean_predictions)
+        test_crps_feature = crps.norm_data(test_data_labels, mean_predictions_feature)
+        test_score = round((1-test_crps_feature.mean()/test_crps.mean()   )*100     , 2 )
+        #print(test_crps_feature.mean())
+        result ='&'+str(test_score)+'\%' 
+        #for i in [8,16,2,5,21]:
+        #    filter = test_data_countries==i
+        #    filter_data = test_crps_feature[filter]
+        #    filter_test = test_crps[filter]
+        #    item = round((1 -np.array(filter_data).mean()/np.array(filter_test).mean() )*100, 2 )
+        #    result = result +'&'+str(item)+'\%'
+
+        print(result)
     print(datetime.now()-start)
 
 def build_model(shape_vec, shape_mat):
     # first branch for the
     inp1 = Input(shape=(1,), name='Country_ID')
-    model1 = Embedding(24, 23, name='Country_Embedding')(inp1)
+    model1 = Embedding(23, 22, name='Country_Embedding')(inp1)
     model1 = Flatten()(model1)
     # second branch for the vector input
     inp2 = Input(shape=shape_vec, name="Date_and_Regimes")
@@ -106,9 +106,9 @@ def build_model(shape_vec, shape_mat):
     # concatenate the two inputs
     x = Concatenate(axis=1)([model1, inp2, model3])
     # add the hiddden layers
-    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_1" )( x )
-    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_2" )( x )
-    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_3" )( x )
+    x = Dense( 100 , activation='softmax', name="Combined_Hidden_Layer_1" )( x )
+    x = Dense( 100 , activation='relu'   , name="Combined_Hidden_Layer_2" )( x )
+    x = Dense( 100 , activation='selu'   , name="Combined_Hidden_Layer_3" )( x )
     x = Dense(   2 , activation='linear' , name="Output_Layer" )(x)
     # returns the Model
     return Model([inp1, inp2, inp3], outputs=x)
@@ -141,7 +141,7 @@ def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
         return dataset
 
 
-def convert_dataset_feature_importance(data, batchsize=None,  shuffle=None, shape=False):
+def convert_dataset_feature_importance(data, Regime, batchsize=None,  shuffle=None, shape=False):
     input1 = []
     input21 = []
     input22 = []
@@ -156,22 +156,20 @@ def convert_dataset_feature_importance(data, batchsize=None,  shuffle=None, shap
         input3.append(item[1])
         label.append(item[2][0])
 
+    input1  = np.array(input1 )
     input21 = np.array(input21)
     input22 = np.array(input22)
-    np.random.shuffle(input22[:,0])
-    np.random.shuffle(input22[:,1])
-    np.random.shuffle(input22[:,2])
-    np.random.shuffle(input22[:,3])
-    np.random.shuffle(input22[:,4])
-    np.random.shuffle(input22[:,5])
-    #np.random.shuffle(input22[:,6])
+    #np.random.shuffle(input22)
+    #np.random.shuffle(input22[:,Regime-1])
+    np.random.shuffle(input22[:,Regime+6])
 
     input2  = np.concatenate((input21, input22), axis=1)
 
     input3 = np.array(input3)
     #np.random.shuffle(input3)
-    np.random.shuffle(input3[:,:,16][:,1])
-
+    #np.random.shuffle(input3[:,:,16])
+    #np.random.shuffle(input3[:,:,16][:,1])
+    
     dataset_input = tf.data.Dataset.from_tensor_slices((input1, input2, input3))
     dataset_label = tf.data.Dataset.from_tensor_slices(label)
 

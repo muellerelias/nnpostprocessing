@@ -18,19 +18,34 @@ import model.loss_functions as loss
 
 def main():
     #numpy_path='/home/elias/Nextcloud/1.Masterarbeit'
-    numpy_path='E:/NextCloud072019/1.Masterarbeit/Daten/vorverarbeitetNorm/'
+    numpy_path='/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetRegime/'
     # get the data
     test_data = helpers.load_data(numpy_path, 'test_set.npy')
+    test_data_labels = test_data[:, 2]
+    test_data_labels = np.array([item[0] for item in test_data_labels])
+    test_data_countries = test_data[:, 0]
+    test_data_countries = np.array([item[0] for item in test_data_countries])
+    test_data_month = test_data[:, 5]
 
     print("[INFO] predict data...")
 
 
     all_score= inference(test_data)
 
-    print(('all', all_score))
-    for i in range(1,24):
+    print(('all', all_score ))
+    for i in [8,16,2,5,20]:
         result = inference(test_data, countryid=i)
         print((i, result))
+
+    print(('all', all_score))
+    for i in range(1,13):
+        filter = test_data_month==i
+        filter_data  = test_data[filter]
+        if len(filter_data)>0:
+            item = (i, round(np.array(filter_data[:,3]).mean() , 2 )) 
+        else:
+            item = (i, 0, 0)
+        print( item )
 
 
 def inference(data, countryid=None):
@@ -55,8 +70,27 @@ def inference(data, countryid=None):
     crps_mean = np.array(crps_list).mean(axis=0)
     crps_norm_mean = np.array(crps_norm).mean(axis=0)
 
-    return (crps_mean,crps_norm_mean)
+    return (round(crps_mean,2),crps_norm_mean)
 
 
 if __name__ == "__main__":
     main()
+
+
+"""
+
+('all', (1.96, 281.44798306178114))
+(1, 2.02)
+(2, 1.69)
+(3, 1.53)
+(4, 1.73)
+(5, 1.99)
+(6, 2.24)
+(7, 2.3)
+(8, 2.27)
+(9, 2.08)
+(10, 1.75)
+(11, 1.78)
+(12, 2.18)
+
+"""

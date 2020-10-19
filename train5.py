@@ -20,16 +20,17 @@ import model.build_model as modelprovider
 import model.loss_functions as loss
 
 """
- - regime, but no date
+ - temperature + regime
 """
 
-expname = 'versuch-7'
-numpy_path = '/root/Daten/vorverarbeitetNorm/'
-logdir = '/root/Tests/'
-batchsize = 64
+expname = 'versuch-5'
+numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetRegime/'
+logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'
+batchsize = 256
 epochs = 30
 initial_epochs = 0
-learning_rate = 0.001 #0.45177697155014246
+learning_rate = 0.001 #1.4632021825488089e-05
+train_model = True
 
 
 def main():
@@ -87,17 +88,18 @@ def main():
         cp_callback = tf.keras.callbacks.ModelCheckpoint(
             os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint'), monitor='val_loss', save_weights_only=True, mode='min', save_best_only=True, verbose=0)
 
-        model.fit(
-            train_dataset,
-            epochs=epochs,
-            initial_epoch=initial_epochs,
-            batch_size=batchsize,
-            verbose=1,
-            validation_data=valid_dataset,
-            validation_batch_size=1000,
-            callbacks=[tensorboard_callback, cp_callback, cp_callback_versuch],
-        )
-        model.load_weights(os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint'))
+        if train_model:
+            model.fit(
+                train_dataset,
+                epochs=epochs,
+                initial_epoch=initial_epochs,
+                batch_size=batchsize,
+                verbose=1,
+                validation_data=valid_dataset,
+                validation_batch_size=1000,
+                callbacks=[tensorboard_callback, cp_callback, cp_callback_versuch],
+            )
+        model.load_weights(os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint')).expect_partial()
         
         predictions.append(model.predict(
             test_dataset, batch_size=1000, verbose=0))
@@ -122,7 +124,7 @@ def main():
             spa_data.append(test_crps[i])
         if test_data_countries[i]==5:
             uk_data.append(test_crps[i])
-        if test_data_countries[i]==21:
+        if test_data_countries[i]==20:
             rou_data.append(test_crps[i])
 
     ger_score =  round(np.array(ger_data).mean() , 2 )
@@ -148,17 +150,17 @@ def build_model(shape_vec, shape_mat):
     # second branch for the vector input
     inp2 = Input(shape=shape_vec, name="Date_and_Regimes")
     # third branch for the matrix input
-    #inp3 = Input(shape=shape_mat, name="Ensemble")
-    #model3 = Flatten()(inp3)
+    inp3 = Input(shape=shape_mat, name="Ensemble")
+    model3 = Flatten()(inp3)
     # concatenate the two inputs
-    x = Concatenate(axis=1)([model1, inp2])
+    x = Concatenate(axis=1)([model1, inp2, model3])
     # add the hiddden layers
-    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_1" )( x )
-    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_2" )( x )
-    x = Dense( 100 , activation='linear' , name="Combined_Hidden_Layer_3" )( x )
-    x = Dense(   2 , activation='linear' , name="Output_Layer" )(x)
+    x = Dense( 100 , activation='softmax' , name="Combined_Hidden_Layer_1" )( x )
+    x = Dense( 100 , activation='relu'    , name="Combined_Hidden_Layer_2" )( x )
+    x = Dense( 100 , activation='selu'    , name="Combined_Hidden_Layer_3" )( x )
+    x = Dense(   2 , activation='linear'  , name="Output_Layer" )(x)
     # returns the Model
-    return Model([inp1, inp2], outputs=x)
+    return Model([inp1, inp2, inp3], outputs=x)
 
 def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
     input1 = []
@@ -167,11 +169,11 @@ def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
     label = []
     for item in data:
         input1.append( item[0][0] )
-        input2.append(item[0][2:])
-        input3.append(item[1])
+        input2.append(item[0][1:])
+        input3.append(item[1][:,16])
         label.append(item[2][0])
 
-    dataset_input = tf.data.Dataset.from_tensor_slices((input1, input2))
+    dataset_input = tf.data.Dataset.from_tensor_slices((input1, input2, input3))
     dataset_label = tf.data.Dataset.from_tensor_slices(label)
 
     dataset = tf.data.Dataset.zip((dataset_input, dataset_label))

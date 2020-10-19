@@ -139,7 +139,7 @@ def main(args):
             spa_data.append(test_crps[i])
         if test_data_countries[i]==5:
             uk_data.append(test_crps[i])
-        if test_data_countries[i]==21:
+        if test_data_countries[i]==20:
             rou_data.append(test_crps[i])
 
     ger_score =  round(np.array(ger_data).mean() , 2 )
