@@ -25,10 +25,7 @@ import model.loss_functions as loss
 """
 
 expname = 'crossvalidation-5'
-#numpy_path = '/root/Daten/vorverarbeitetNorm/'
-#logdir = '/root/Tests/'
-numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitet5/'
-logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'
+numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetRegime5/'
 logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'
 batchsize = 256
 epochs = 30

@@ -25,82 +25,90 @@ import model.loss_functions as loss
  - all (regime + temperature + remaining NWP inputs)
 """
 
+
 def build_model(hp):
-    activation='linear'
-    
+    emb  = 2
+
     inp1 = Input(shape=(1,), name='Country_ID')
-    model1 = Embedding(23, 22, name='Country_Embedding')(inp1)
+    model1 = Embedding(23, emb, name='Country_Embedding')(inp1)
     model1 = Flatten()(model1)
 
     inp2 = Input(shape=(15,), name="Date_and_Regimes")
 
     # third branch for the matrix input
-    inp3 = Input(shape=(2,19), name="Ensemble")
+    inp3 = Input(shape=(2, 19), name="Ensemble")
     model3 = Flatten()(inp3)
 
     # concatenate the two inputs
     x = Concatenate(axis=1)([model1, inp2, model3])
 
     # add the hiddden layers
-    nodes = 100
-    numb= 3
-    if(numb>0):
-        for i in range(1,numb):
-            x = Dense(nodes, activation=activation,
-                        name="Combined_Hidden_Layer_"+str(i))(x)
-    
-    x = Dense(2, activation=activation, name="Output_Layer")(x)
-    
+    x = Dense(100, activation='relu', name="Combined_Hidden_Layer_1")(x)
+    x = Dense(100, activation='relu', name="Combined_Hidden_Layer_2")(x)
+    x = Dense(100, activation='relu', name="Combined_Hidden_Layer_3")(x)
+    x = Dense(2, name="Output_Layer")(x)
+
     # returns the Model
-    model  = Model([inp1, inp2, inp3], outputs=x)
+    model = Model([inp1, inp2, inp3], outputs=x)
     lossfn = loss.crps_cost_function
 
-    opt = Adam(hp.Float('learning_rate', 1e-8, 0.1, default=0.002, sampling='log'), amsgrad=True)
+    #opt = Adam(hp.Float('learning_rate', 1e-8, 0.1, default=0.001, sampling='log'), amsgrad=True)
+    lr1 = hp.Int("lr_1", 1, 9)
+    lr2 = hp.Int("lr_2", 1, 5)
+    lr = float(str(lr1)+'e-'+str(lr2))
+    opt = Adam(lr, amsgrad=True)
     model.compile(loss=lossfn, optimizer=opt)
+
     return model
+
 
 """
 Own Tuner with batch size
 """
 
+
 class MyTuner(kt.Hyperband):
     def run_trial(self, trial, *args, **kwargs):
         # You can add additional HyperParameters for preprocessing and custom training loops
         # via overriding `run_trial`
-        kwargs['batch_size'] = trial.hyperparameters.Choice('batch_size', [1,4,8,16,32,64,128,256,512,1024])
+        kwargs['batch_size'] = trial.hyperparameters.Choice(
+            'batch_size', [32, 64, 128, 256, 512, 1024], default=64)
         list(args)
         args1 = args[0].batch(kwargs['batch_size'])
         tuple(args1)
         super(MyTuner, self).run_trial(trial, args1, **kwargs)
+
+
 """
 Start with the script
 """
 start = datetime.now()
 # get the data
 train_data = helpers.load_data(
-    '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetRegime/','train_set.npy')
+    '/home/elias/Nextcloud/1.Masterarbeit/Daten/10days/vorverarbeitetRegime/', 'train_set.npy')
 valid_data = helpers.load_data(
-    '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetRegime/','valid_set.npy')
+    '/home/elias/Nextcloud/1.Masterarbeit/Daten/10days/vorverarbeitetRegime/', 'valid_set.npy')
 
 train_dataset = converter.convert_numpy_to_multi_input_dataset(
-    train_data, shuffle=1000)
+    train_data, batchsize= 256,  shuffle=1000)
 valid_dataset = converter.convert_numpy_to_multi_input_dataset(
     valid_data, batchsize=1000, shuffle=100)
 
 
-tuner = MyTuner(
+tuner = kt.Hyperband(
     build_model,
     objective='val_loss',
-    max_epochs=30,
-    hyperband_iterations=5,
-    project_name='ganzesNetz14092020_1')
+    max_epochs=30,    
+    factor = 10,    
+    hyperband_iterations=100,
+    project_name='11112020_b256_t10')
 
 tuner.search(train_dataset,
              validation_data=valid_dataset,
-             epochs=5,
-             callbacks=[tf.keras.callbacks.EarlyStopping('val_loss', patience=3)])
+             epochs=100,
+             callbacks=[tf.keras.callbacks.EarlyStopping('val_loss', patience=10)])
 
-tuner.results_summary(num_trials=3)
+tuner.results_summary(num_trials=1)
 
 end = datetime.now()
 print(end-start)

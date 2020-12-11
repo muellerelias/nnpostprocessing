@@ -1,6 +1,5 @@
 import argparse
 import json
-import math
 import os
 from datetime import datetime
 
@@ -21,32 +20,31 @@ import model.build_model as modelprovider
 import model.loss_functions as loss
 
 """
- - all
+ - temperature + regime
 """
 
-expname = 'versuch-1'
-numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetRegime/'
-logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'
-batchsize = 256
+expname = 'model-5'
+forecast = '15days'
+numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/'+forecast+'/vorverarbeitetRegime/'
+logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'+forecast+'/'
+batchsize = 16
 epochs = 30
 initial_epochs = 0
-learning_rate = 0.001
+learning_rate = 5e-05
 train_model = True
+
 
 def main():
     start = datetime.now()
     # get the data
-
     train_data = helpers.load_data(numpy_path, 'train_set.npy')
     valid_data = helpers.load_data(numpy_path, 'valid_set.npy')
-    test_data  = helpers.load_data(numpy_path, 'test_set.npy')
+    test_data = helpers.load_data(numpy_path, 'test_set.npy')
     test_data_labels = test_data[:, 2]
     test_data_labels = np.array([item[0] for item in test_data_labels])
     test_data_countries = test_data[:, 0]
     test_data_countries = np.array([item[0] for item in test_data_countries])
-    test_data_month = test_data[:, 5]
-
-    print(len(train_data),len(valid_data),len(test_data))
+    
     # convert the data
     train_dataset, train_shape = convert_dataset(
         train_data, batchsize=batchsize, shuffle=1000, shape=True)
@@ -72,10 +70,9 @@ def main():
     checkpoint_dir = os.path.join(logdir, expname, 'checkpoints/')
 
     # setup Callbacks
-
-    # setup Callbacks
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=os.path.join(logdir, expname), update_freq='batch', histogram_freq=0, write_graph=True, write_images=False,
                                                           profile_batch=2)
+
 
     # begin with training
     print('[INFO] Starting training')
@@ -90,7 +87,7 @@ def main():
         cp_callback_versuch = tf.keras.callbacks.ModelCheckpoint(
             os.path.join(checkpoint_dir, 'round-'+str(i)+'/')+"checkpoint_{epoch}", monitor='val_loss', save_weights_only=True, mode='min', verbose=0)
         cp_callback = tf.keras.callbacks.ModelCheckpoint(
-            os.path.join(checkpoint_dir, 'round-'+str(i)+'/best_checkpoint'), monitor='val_loss', save_weights_only=True, mode='min', save_best_only=True, verbose=0)
+            os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint'), monitor='val_loss', save_weights_only=True, mode='min', save_best_only=True, verbose=0)
 
         if train_model:
             model.fit(
@@ -103,8 +100,7 @@ def main():
                 validation_batch_size=1000,
                 callbacks=[tensorboard_callback, cp_callback, cp_callback_versuch],
             )
-        
-        model.load_weights(os.path.join(checkpoint_dir, 'round-'+str(i)+'/best_checkpoint')).expect_partial()
+        model.load_weights(os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint')).expect_partial()
         
         predictions.append(model.predict(
             test_dataset, batch_size=1000, verbose=0))
@@ -113,60 +109,17 @@ def main():
     # Make sure std is positive
     predictions[:, :, 1] = np.abs(predictions[:, :, 1])
     mean_predictions = np.mean(predictions, 0)
-    test_crps = crps.norm_data(test_data_labels, mean_predictions)
 
-    #print_country(mean_predictions, test_data_countries)
-    ger_data = []
-    swe_data = []
-    spa_data = []
-    uk_data  = []
-    rou_data = []
-    for i in range(len(test_data_countries)):
-        if test_data_countries[i]==8:
-            ger_data.append(test_crps[i])
-        if test_data_countries[i]==16:
-            swe_data.append(test_crps[i])
-        if test_data_countries[i]==2:
-            spa_data.append(test_crps[i])
-        if test_data_countries[i]==5:
-            uk_data.append(test_crps[i])
-        if test_data_countries[i]==20:
-            rou_data.append(test_crps[i])
+    helpers.printIntCountries(test_data_labels, test_data_countries , mean_predictions)
+    helpers.printHist(helpers.datasetPIT(mean_predictions, test_data_labels))
 
-    ger_score =  round(np.array(ger_data).mean() , 2 )
-    swe_score =  round(np.array(swe_data).mean() , 2 )
-    spa_score =  round(np.array(spa_data).mean() , 2 )
-    uk_score  =  round(np.array(uk_data).mean()  , 2 )
-    rou_score =  round(np.array(rou_data).mean() , 2 )
-    test_score = round(test_crps.mean()          , 2 )
-
-    print(f'{test_score}&{ger_score}&{swe_score}&{spa_score}&{uk_score}&{rou_score}')
-    
-    #print results
-    test_score = round(test_crps.mean()          , 2 )
-    result = []
-    
-    print(('all',round(test_crps.mean(), 2 ), round(test_data_labels.mean(), 2 )))
-    for i in range(1,13):
-        filter = test_data_month==i
-        filter_data  = test_crps[filter]
-        filter_data2 = test_data_labels[filter] 
-        if len(filter_data)>0:
-            item = (i, round(np.array(filter_data).mean() , 2 ), round(np.array(filter_data2).mean() , 2 )) 
-        else:
-            item = (i, 0, 0)
-        print( item )
-        result.append( item )
-
-    result = np.array(result)
-    np.save(os.path.join(logdir, expname, 'result'), result)
     np.save(os.path.join(logdir, expname, 'prediction'), predictions)
     print(datetime.now()-start)
 
 def build_model(shape_vec, shape_mat):
     # first branch for the
     inp1 = Input(shape=(1,), name='Country_ID')
-    model1 = Embedding(23, 22, name='Country_Embedding')(inp1)
+    model1 = Embedding(23, 2, name='Country_Embedding')(inp1)
     model1 = Flatten()(model1)
     # second branch for the vector input
     inp2 = Input(shape=shape_vec, name="Date_and_Regimes")
@@ -176,10 +129,10 @@ def build_model(shape_vec, shape_mat):
     # concatenate the two inputs
     x = Concatenate(axis=1)([model1, inp2, model3])
     # add the hiddden layers
-    x = Dense( 100 , activation='softmax', name="Combined_Hidden_Layer_1" )( x )
-    x = Dense( 100 , activation='relu'   , name="Combined_Hidden_Layer_2" )( x )
-    x = Dense( 100 , activation='selu'   , name="Combined_Hidden_Layer_3" )( x )
-    x = Dense(   2 , activation='linear' , name="Output_Layer" )(x)
+    x = Dense(100, activation='linear'  , name="Combined_Hidden_Layer_1")(x)
+    x = Dense(100, activation='relu'    , name="Combined_Hidden_Layer_2")(x)
+    x = Dense(100, activation='relu'    , name="Combined_Hidden_Layer_3")(x)
+    x = Dense(  2, activation='linear'  , name="Output_Layer")(x)
     # returns the Model
     return Model([inp1, inp2, inp3], outputs=x)
 
@@ -189,9 +142,9 @@ def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
     input3 = []
     label = []
     for item in data:
-        input1.append(item[0][0])
+        input1.append( item[0][0] )
         input2.append(item[0][1:])
-        input3.append(item[1])
+        input3.append(item[1][:,16])
         label.append(item[2][0])
 
     dataset_input = tf.data.Dataset.from_tensor_slices((input1, input2, input3))

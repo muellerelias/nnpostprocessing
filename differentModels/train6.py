@@ -23,17 +23,15 @@ import model.loss_functions as loss
  - regime
 """
 
-expname = 'versuch-6'
-#numpy_path = '/root/Daten/vorverarbeitetNorm/'
-#logdir = '/root/Tests/'
-numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetRegime/'
-logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'
-batchsize = 256
+expname = 'model-6'
+forecast = '10days'
+numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/'+forecast+'/vorverarbeitetRegime/'
+logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'+forecast+'/'
+batchsize = 16
 epochs = 30
 initial_epochs = 0
-learning_rate = 0.001 #0.012522447305684341
-train_model = True
-
+learning_rate = 5e-05
+train_model = False
 
 def main():
     start = datetime.now()
@@ -111,57 +109,18 @@ def main():
     # Make sure std is positive
     predictions[:, :, 1] = np.abs(predictions[:, :, 1])
     mean_predictions = np.mean(predictions, 0)
-    test_crps = crps.norm_data(test_data_labels, mean_predictions)
-    #print_country(mean_predictions, test_data_countries)
-    ger_data = []
-    swe_data = []
-    spa_data = []
-    uk_data  = []
-    rou_data = []
-    for i in range(len(test_data_countries)):
-        if test_data_countries[i]==8:
-            ger_data.append(test_crps[i])
-        if test_data_countries[i]==16:
-            swe_data.append(test_crps[i])
-        if test_data_countries[i]==2:
-            spa_data.append(test_crps[i])
-        if test_data_countries[i]==5:
-            uk_data.append(test_crps[i])
-        if test_data_countries[i]==20:
-            rou_data.append(test_crps[i])
 
-    ger_score =  round(np.array(ger_data).mean() , 2 )
-    swe_score =  round(np.array(swe_data).mean() , 2 )
-    spa_score =  round(np.array(spa_data).mean() , 2 )
-    uk_score  =  round(np.array(uk_data).mean()  , 2 )
-    rou_score =  round(np.array(rou_data).mean() , 2 )
-    test_score = round(test_crps.mean()          , 2 )
+    helpers.printIntCountries(test_data_labels, test_data_countries , mean_predictions)
+    helpers.printHist(helpers.datasetPIT(mean_predictions, test_data_labels))
+    helpers.printIntMonth(test_data_labels, test_data_month, mean_predictions)
 
-    print(f'{test_score}&{ger_score}&{swe_score}&{spa_score}&{uk_score}&{rou_score}')
-    
-    for i in range(1,13):
-        filter = test_data_month==i
-        filter_data  = test_crps[filter]
-        filter_data2 = test_data_labels[filter] 
-        if len(filter_data)>0:
-            item = (i, round(np.array(filter_data).mean() , 2 ), round(np.array(filter_data2).mean() , 2 )) 
-        else:
-            item = (i, 0, 0)
-        print( item )
-
-
-
-
-    result = [ test_score, ger_score, swe_score, spa_score, uk_score, rou_score]
-    result = np.array(result)
-    np.save(os.path.join(logdir, expname, 'result'), result)
     np.save(os.path.join(logdir, expname, 'prediction'), predictions)
     print(datetime.now()-start)
 
 def build_model(shape_vec, shape_mat):
     # first branch for the
     inp1 = Input(shape=(1,), name='Country_ID')
-    model1 = Embedding(24, 23, name='Country_Embedding')(inp1)
+    model1 = Embedding(23, 2, name='Country_Embedding')(inp1)
     model1 = Flatten()(model1)
     # second branch for the vector input
     inp2 = Input(shape=shape_vec, name="Date_and_Regimes")
@@ -171,10 +130,10 @@ def build_model(shape_vec, shape_mat):
     # concatenate the two inputs
     x = Concatenate(axis=1)([model1, inp2])
     # add the hiddden layers
-    x = Dense( 100 , activation='softmax' , name="Combined_Hidden_Layer_1" )( x )
-    x = Dense( 100 , activation='relu'    , name="Combined_Hidden_Layer_2" )( x )
-    x = Dense( 100 , activation='selu'    , name="Combined_Hidden_Layer_3" )( x )
-    x = Dense(   2 , activation='linear'  , name="Output_Layer" )(x)
+    x = Dense(100, activation='linear'  , name="Combined_Hidden_Layer_1")(x)
+    x = Dense(100, activation='relu'    , name="Combined_Hidden_Layer_2")(x)
+    x = Dense(100, activation='relu'    , name="Combined_Hidden_Layer_3")(x)
+    x = Dense(  2, activation='linear'  , name="Output_Layer")(x)
     # returns the Model
     return Model([inp1, inp2], outputs=x)
 

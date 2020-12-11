@@ -25,9 +25,9 @@ import math
  - all
 """
 
-expname = 'versuch-1'
-numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitet/'
-logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'
+expname = 'model-1'
+numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/15days/vorverarbeitetRegime/'
+logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/15days/'
 batchsize = 64
 epochs = 30
 initial_epochs = 0
@@ -72,18 +72,22 @@ def main():
 
     # begin with training
     print('[INFO] Starting training')
-    predictions = []
+    predictions    = []
+    predictions_ev = []
     for i in range(1, 11):
         print('Round number: '+str(i))
         model = build_model(
             train_shape[1], train_shape[2])
         
         model.compile(loss=lossfn, optimizer=opt)
-        model.load_weights(os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint')).expect_partial()
+        model.load_weights(os.path.join(checkpoint_dir, 'round-'+str(i)+'/best_checkpoint')).expect_partial()
         
         predictions.append(model.predict(
             test_dataset, batch_size=1000, verbose=0))
+        predictions_ev.append(model.evaluate(
+            test_dataset, batch_size=1000, verbose=0))
 
+    print(predictions_ev)
     predictions = np.array(predictions)
     # Make sure std is positive
     predictions[:, :, 1] = np.abs(predictions[:, :, 1])
@@ -98,8 +102,11 @@ def main():
         item = test_data[i] 
         pit.append(helpers.calculatePIT(
             item[2][0], pred[0], abs(pred[1])))
-        rank.append(item[4])
+        rank.append(item[4])    
+    
+    printHist(pit)
 
+    """
     fig, axes = plt.subplots(1, 2, figsize=(10,3), dpi=200)
     axes[0].hist(pit,  bins=12, range=(0, 1), color='#009682', label='PIT')
     axes[1].hist(rank, bins=12, range=(1, 13), color='#009682', label='RANK', rwidth=1)
@@ -108,7 +115,7 @@ def main():
     axes[1].set_title('Verification Rank (all Countries)')
     axes[0].set_title('PIT (all Countries)')
     plt.subplots_adjust(left=0.05, right=0.95, wspace=0.35)
-    #plt.show()
+    plt.show()
 
     print(('all', round(np.array(test_crps).mean() , 2 ) ))
     filter_data = np.array([])
@@ -126,6 +133,7 @@ def main():
 
     #print results
     print(datetime.now()-start)
+    """
 
 def build_model(shape_vec, shape_mat):
     # first branch for the
@@ -140,10 +148,10 @@ def build_model(shape_vec, shape_mat):
     # concatenate the two inputs
     x = Concatenate(axis=1)([model1, inp2, model3])
     # add the hiddden layers
-    x = Dense( 100 , activation='softmax', name="Combined_Hidden_Layer_1" )( x )
-    x = Dense( 100 , activation='relu'   , name="Combined_Hidden_Layer_2" )( x )
-    x = Dense( 100 , activation='selu'   , name="Combined_Hidden_Layer_3" )( x )
-    x = Dense(   2 , activation='linear' , name="Output_Layer" )(x)
+    x = Dense( 100 , activation='relu' , name="Combined_Hidden_Layer_1" )( x )
+    x = Dense( 100 , activation='relu' , name="Combined_Hidden_Layer_2" )( x )
+    x = Dense( 100 , activation='relu' , name="Combined_Hidden_Layer_3" )( x )
+    x = Dense(   2                     , name="Output_Layer" )(x)
     # returns the Model
     return Model([inp1, inp2, inp3], outputs=x)
 
@@ -173,6 +181,18 @@ def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
         return dataset, (input1[0].shape , input2[0].shape, input3[0].shape)
     else:
         return dataset
+
+
+
+def printHist(data):
+    histo = plt.hist(data, bins=20, range=(0, 1))
+    return_string = ''
+    return_array  = []
+    for i in range(len(histo[0])):
+        return_array.append((round(histo[1][i],2),histo[0][i]))
+        return_string += '('+str(round(histo[1][i],2))+','+ str(histo[0][i])+') '
+    print(return_string)
+    return return_array
 
 if __name__ == "__main__":
     helpers.mkdir_not_exists(os.path.join(logdir, expname))

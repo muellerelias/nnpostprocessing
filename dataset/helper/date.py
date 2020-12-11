@@ -9,3 +9,7 @@ def convert_date(date, type='linear'):
         return abs((2*day/all) -1)
     if type == 'sinus':
         return abs(round(math.sin((day/all)*math.pi), 15))
+
+
+if __name__ == "__main__":
+    print(convert_date("1992-05-31"))

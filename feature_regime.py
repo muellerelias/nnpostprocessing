@@ -23,7 +23,7 @@ import model.loss_functions as loss
 Feature importance 
 """
 
-expname = 'model-1'
+expname = 'model-6'
 numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/15days/vorverarbeitetRegime/'
 logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/15days/'
 
@@ -45,47 +45,45 @@ def main():
     checkpoint_dir = os.path.join(logdir, expname, 'checkpoints/')
     # begin with training
     print('[INFO] Starting training')
-    #for index in range(19):
-    predictions = []
-    predictions_feature = []
-    test_dataset_feature = convert_dataset_feature_importance(
-        test_data, mode="regime", index=1)
+    for index in range(7):
+        predictions = []
+        predictions_feature = []
+        test_dataset_feature = convert_dataset_feature_importance(
+            test_data, mode="regime", index=1)
 
-    for i in range(1, 11):
-        #print('Round number: '+str(i))
-        model = build_model(
-            (15,), (2, 19))
+        for i in range(1, 11):
+            #print('Round number: '+str(i))
+            model = build_model(
+                (15,), (2, 19))
 
-        model.compile(loss=loss.crps_cost_function, optimizer=Adam())
+            model.compile(loss=loss.crps_cost_function, optimizer=Adam())
 
-        model.load_weights(os.path.join(
-            checkpoint_dir, 'round-'+str(i)+'/best_checkpoint')).expect_partial()
+            model.load_weights(os.path.join(
+                checkpoint_dir, 'round-'+str(i)+'/checkpoint')).expect_partial()
 
-        predictions.append(model.predict(
-            test_dataset, batch_size=1000, verbose=0))
-        predictions_feature.append(model.predict(
-            test_dataset_feature, batch_size=1000, verbose=0))
+            predictions.append(model.predict(
+                test_dataset, batch_size=1000, verbose=0))
+            predictions_feature.append(model.predict(
+                test_dataset_feature, batch_size=1000, verbose=0))
 
-    predictions = np.array(predictions)
-    predictions_feature = np.array(predictions_feature)
+        predictions = np.array(predictions)
+        predictions_feature = np.array(predictions_feature)
 
-    # Make sure std is positive
-    predictions[:, :, 1] = np.abs(predictions[:, :, 1])
-    predictions_feature[:, :, 1] = np.abs(predictions_feature[:, :, 1])
+        # Make sure std is positive
+        predictions[:, :, 1] = np.abs(predictions[:, :, 1])
+        predictions_feature[:, :, 1] = np.abs(predictions_feature[:, :, 1])
 
-    mean_predictions = np.mean(predictions, 0)
-    mean_predictions_feature = np.mean(predictions_feature, 0)
+        mean_predictions = np.mean(predictions, 0)
+        mean_predictions_feature = np.mean(predictions_feature, 0)
 
-    test_crps = crps.norm_data(test_data_labels, mean_predictions)
-    test_crps_feature = crps.norm_data(
-        test_data_labels, mean_predictions_feature)
-    #print(round(test_crps_feature.mean(), 2))
-    #print(round(test_crps.mean(), 2))
-    test_score = round((1-test_crps_feature.mean()/test_crps.mean())*100, 2)
-    print(test_crps_feature.mean())
-    result = '& \SI{'+str(test_score)+'}{\percent} '
+        test_crps = crps.norm_data(test_data_labels, mean_predictions)
+        test_crps_feature = crps.norm_data(
+            test_data_labels, mean_predictions_feature)
+        print(round(test_crps_feature.mean(), 2))
+        print(round(test_crps.mean(), 2))
+        test_score = round((1-test_crps_feature.mean()/test_crps.mean())*100, 2)
+        print('& \SI{'+str(test_score)+'}{\percent}')
 
-    print(result)
     print(datetime.now()-start)
 
 
@@ -97,17 +95,17 @@ def build_model(shape_vec, shape_mat):
     # second branch for the vector input
     inp2   = Input(shape=shape_vec, name="Date_and_Regimes")
     # third branch for the matrix input
-    inp3   = Input(shape=shape_mat, name="Ensemble")
-    model3 = Flatten()(inp3)
+    # inp3   = Input(shape=shape_mat, name="Ensemble")
+    # model3 = Flatten()(inp3)
     # concatenate the two inputs
-    x = Concatenate(axis=1)([model1, inp2, model3])
+    x = Concatenate(axis=1)([model1, inp2])
     # add the hiddden layers
     x = Dense(100, activation='linear'  , name="Combined_Hidden_Layer_1")(x)
     x = Dense(100, activation='relu'    , name="Combined_Hidden_Layer_2")(x)
     x = Dense(100, activation='relu'    , name="Combined_Hidden_Layer_3")(x)
     x = Dense(  2, activation='linear'  , name="Output_Layer")(x)
     # returns the Model
-    return Model([inp1, inp2, inp3], outputs=x)
+    return Model([inp1, inp2], outputs=x)
 
 
 def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
@@ -122,7 +120,7 @@ def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
         label.append(item[2][0])
 
     dataset_input = tf.data.Dataset.from_tensor_slices(
-        (input1, input2, input3))
+        (input1, input2))
     dataset_label = tf.data.Dataset.from_tensor_slices(label)
 
     dataset = tf.data.Dataset.zip((dataset_input, dataset_label))
@@ -146,7 +144,7 @@ def convert_dataset_feature_importance(data, mode,index=0):
     elif mode == "date":
         np.random.shuffle(input21)
     elif mode == "regime":
-        """input223 =[]
+        input223 =[]
         input224 =[]
         for e in input22:
             matrix = np.array([e[:7],e[7:]])
@@ -156,12 +154,7 @@ def convert_dataset_feature_importance(data, mode,index=0):
         np.random.shuffle(input223[:,:,index])
         for b in input223:
             input224.append(np.concatenate((b[0],b[1])))
-        input22 = np.array(input224)"""
-        np.random.shuffle(input22)
-    elif mode == "ensemble":
-        #np.random.shuffle(input3[:,:, index])
-        #np.random.shuffle(input3[:,:, index][:,0])
-        np.random.shuffle(input3[:,:, index][:,1])
+        input22 = np.array(input224)
     else:
         raise NameError('The mode is not right. ')
 
@@ -169,7 +162,7 @@ def convert_dataset_feature_importance(data, mode,index=0):
     input3 = np.array(input3)
 
     dataset_input = tf.data.Dataset.from_tensor_slices(
-        (input1, input2, input3))
+        (input1, input2))
     dataset_label = tf.data.Dataset.from_tensor_slices(label)
 
     dataset = tf.data.Dataset.zip((dataset_input, dataset_label))

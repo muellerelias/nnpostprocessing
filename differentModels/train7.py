@@ -20,17 +20,19 @@ import model.build_model as modelprovider
 import model.loss_functions as loss
 
 """
- - temperature
+ - regime, but no date
 """
 
-expname = 'versuch-3'
-numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetRegime/'
-logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'
-batchsize = 256
+expname = 'model-7'
+forecast = '15days'
+numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/'+forecast+'/vorverarbeitetRegime/'
+logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'+forecast+'/'
+batchsize = 16
 epochs = 30
 initial_epochs = 0
-learning_rate = 0.001 #0.00035486499330070876
+learning_rate = 5e-05
 train_model = True
+
 
 def main():
     start = datetime.now()
@@ -107,60 +109,32 @@ def main():
     # Make sure std is positive
     predictions[:, :, 1] = np.abs(predictions[:, :, 1])
     mean_predictions = np.mean(predictions, 0)
-    test_crps = crps.norm_data(test_data_labels, mean_predictions)
-    #print_country(mean_predictions, test_data_countries)
-    ger_data = []
-    swe_data = []
-    spa_data = []
-    uk_data  = []
-    rou_data = []
-    for i in range(len(test_data_countries)):
-        if test_data_countries[i]==8:
-            ger_data.append(test_crps[i])
-        if test_data_countries[i]==16:
-            swe_data.append(test_crps[i])
-        if test_data_countries[i]==2:
-            spa_data.append(test_crps[i])
-        if test_data_countries[i]==5:
-            uk_data.append(test_crps[i])
-        if test_data_countries[i]==20:
-            rou_data.append(test_crps[i])
+    
+    helpers.printIntCountries(test_data_labels, test_data_countries , mean_predictions)
+    helpers.printHist(helpers.datasetPIT(mean_predictions, test_data_labels))
 
-    ger_score =  round(np.array(ger_data).mean() , 2 )
-    swe_score =  round(np.array(swe_data).mean() , 2 )
-    spa_score =  round(np.array(spa_data).mean() , 2 )
-    uk_score  =  round(np.array(uk_data).mean()  , 2 )
-    rou_score =  round(np.array(rou_data).mean() , 2 )
-    test_score = round(test_crps.mean()          , 2 )
-
-    print(f'{test_score}&{ger_score}&{swe_score}&{spa_score}&{uk_score}&{rou_score}')
-
-    result = [ test_score, ger_score, swe_score, spa_score, uk_score, rou_score]
-    result = np.array(result)
-
-    np.save(os.path.join(logdir, expname, 'result'), result)
     np.save(os.path.join(logdir, expname, 'prediction'), predictions)
     print(datetime.now()-start)
 
 def build_model(shape_vec, shape_mat):
     # first branch for the
     inp1 = Input(shape=(1,), name='Country_ID')
-    model1 = Embedding(24, 23, name='Country_Embedding')(inp1)
+    model1 = Embedding(23, 2, name='Country_Embedding')(inp1)
     model1 = Flatten()(model1)
     # second branch for the vector input
-    # inp2 = Input(shape=shape_vec, name="Date_and_Regimes")
+    inp2 = Input(shape=shape_vec, name="Date_and_Regimes")
     # third branch for the matrix input
-    inp3 = Input(shape=shape_mat, name="Ensemble")
-    model3 = Flatten()(inp3)
+    #inp3 = Input(shape=shape_mat, name="Ensemble")
+    #model3 = Flatten()(inp3)
     # concatenate the two inputs
-    x = Concatenate(axis=1)([model1, model3])
+    x = Concatenate(axis=1)([model1, inp2])
     # add the hiddden layers
-    x = Dense( 100 , activation='softmax' , name="Combined_Hidden_Layer_1" )( x )
-    x = Dense( 100 , activation='relu'    , name="Combined_Hidden_Layer_2" )( x )
-    x = Dense( 100 , activation='selu'    , name="Combined_Hidden_Layer_3" )( x )
-    x = Dense(   2 , activation='linear'  , name="Output_Layer" )(x)
+    x = Dense(100, activation='linear'  , name="Combined_Hidden_Layer_1")(x)
+    x = Dense(100, activation='relu'    , name="Combined_Hidden_Layer_2")(x)
+    x = Dense(100, activation='relu'    , name="Combined_Hidden_Layer_3")(x)
+    x = Dense(  2, activation='linear'  , name="Output_Layer")(x)
     # returns the Model
-    return Model([inp1, inp3], outputs=x)
+    return Model([inp1, inp2], outputs=x)
 
 def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
     input1 = []
@@ -168,12 +142,12 @@ def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
     input3 = []
     label = []
     for item in data:
-        input1.append(item[0][0] )
-        input2.append(item[0][1:])
-        input3.append(item[1][:,16])
+        input1.append( item[0][0] )
+        input2.append(item[0][2:])
+        input3.append(item[1])
         label.append(item[2][0])
 
-    dataset_input = tf.data.Dataset.from_tensor_slices((input1, input3))
+    dataset_input = tf.data.Dataset.from_tensor_slices((input1, input2))
     dataset_label = tf.data.Dataset.from_tensor_slices(label)
 
     dataset = tf.data.Dataset.zip((dataset_input, dataset_label))
@@ -192,14 +166,3 @@ def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
 if __name__ == "__main__":
     helpers.mkdir_not_exists(os.path.join(logdir, expname))
     main()
-
-
-"""
-All test score: 1.51
-Ger test score: 1.56
-SWE test score: 1.66
-SPA test score: 1.17
- UK test score: 1.23
-ROU test score: 1.51
-3:08:18.901600
-"""

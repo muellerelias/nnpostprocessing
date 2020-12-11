@@ -2,7 +2,7 @@ import argparse
 import glob
 import os
 import pathlib
-from datetime import datetime
+import datetime
 
 from helper.verificationrank import verificationRank
 import numpy as np
@@ -31,8 +31,8 @@ args = parser.parse_args()
 
 
 def main(args):
-    fileglob = glob.glob(os.path.join(args.dataset_dir, 'ecmwf_*_240.csv'))
-    start = datetime.now()
+    fileglob = glob.glob(os.path.join(args.dataset_dir, 'ecmwf_*_360.csv'))
+    start = datetime.datetime.now()
     train_set = []
     train_set_all = []
     valid_set = []
@@ -81,8 +81,7 @@ def main(args):
     np.save(os.path.join(args.np_dir, 'train_set.npy'), train_set)
     np.save(os.path.join(args.np_dir, 'valid_set.npy'), valid_set)
     np.save(os.path.join(args.np_dir, 'test_set.npy'), test_set)
-    end = datetime.now()
-    print(end-start)
+    print(datetime.datetime.now()-start)
     print('[INFO] Finished')
 
 
@@ -98,7 +97,7 @@ def convert_to_model_data(set, mean, std):
         
         for file in set:
             matrix_data.append((file[i][6:25]-mean[6:25])/std[6:25])
-            regime_data.append(file[i][25:32]) #(set[0][i][25:32]-mean[25:32])/std[25:32] 
+            regime_data.append(file[i][25:32])  
 
         label = np.array(set[0][i][2:6], dtype='float64')
 
@@ -120,7 +119,7 @@ def convert_to_model_data(set, mean, std):
         row.append(label)
         row.append(Crps)
         row.append(verificationRank(set[0][i][2], ensemble))
-        row.append(datetime.strptime(set[0][i][0],'%Y-%m-%d').month)
+        row.append((datetime.datetime.strptime(set[0][i][0],'%Y-%m-%d')+datetime.timedelta(days=15)).month)
         data.append(row)
     
     print('[INFO] Finished processing data')

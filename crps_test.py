@@ -17,8 +17,7 @@ import model.build_model as modelprovider
 import model.loss_functions as loss
 
 def main():
-    #numpy_path='/home/elias/Nextcloud/1.Masterarbeit'
-    numpy_path='/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitetRegime/'
+    numpy_path='/home/elias/Nextcloud/1.Masterarbeit/Daten/15days/vorverarbeitetRegime/'
     # get the data
     test_data = helpers.load_data(numpy_path, 'test_set.npy')
     test_data_labels = test_data[:, 2]
@@ -28,7 +27,6 @@ def main():
     test_data_month = test_data[:, 5]
 
     print("[INFO] predict data...")
-
 
     all_score= inference(test_data)
 
@@ -40,7 +38,9 @@ def main():
     print(('all', all_score))
     for i in range(1,13):
         filter = test_data_month==i
+        #filter = np.logical_and(test_data_month==i, test_data_countries==8)
         filter_data  = test_data[filter]
+        #print(len(filter_data))
         if len(filter_data)>0:
             item = (i, round(np.array(filter_data[:,3]).mean() , 2 )) 
         else:
@@ -70,8 +70,8 @@ def inference(data, countryid=None):
     crps_mean = np.array(crps_list).mean(axis=0)
     crps_norm_mean = np.array(crps_norm).mean(axis=0)
 
-    return (round(crps_mean,2),crps_norm_mean)
-
+    #return (round(crps_mean,2),crps_norm_mean)
+    return round(crps_mean,2)
 
 if __name__ == "__main__":
     main()

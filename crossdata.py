@@ -24,7 +24,7 @@ import model.loss_functions as loss
  - all
 """
 
-numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/vorverarbeitet5/'
+numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/15days/vorverarbeitetRegime/'
 
 def main():
     start = datetime.now()
