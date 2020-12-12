@@ -24,5 +24,6 @@ pip3 install tensorflow properscoring matplotlib pandas keras-tuner
 - For training a model use ```bash python3 train.py```
 
 ## Acknowledge
+I was privileged to write a very interesting thesis, for which I would like to thank two groups who made this thesis possible:
 - I thank [Prof. Dr. Tilmann Gneiting](https://www.math.kit.edu/stoch/~gneiting/en) for supervising this thesis and [Dr. Sebastian Lerch](https://www.math.kit.edu/stoch/~lerch/de) for inspiring conversations and constructive remarks.
 - I thank [Dr. Christian Grams'](https://www.imk-tro.kit.edu/14_7356.php) working group for the opportunity and support for this thesis. Especially [Dr. Julian Quinting](https://www.imk-tro.kit.edu/14_7532.php) for his expert support and [Dr. Dominik Büeler](https://www.imk-tro.kit.edu/14_7600.php) for the calculation of the data. 
