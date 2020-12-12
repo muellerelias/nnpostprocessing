@@ -29,13 +29,13 @@ model 1 with all inputs
 
 expname = 'model-1'
 forecast = '10days'
-numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/'+forecast+'/vorverarbeitetRegime/'
-logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/'+forecast+'/'
+numpy_path = '...'+forecast+'/array/'
+logdir = '...'+forecast+'/'
 batchsize = 16
 epochs = 30
 initial_epochs = 0
 learning_rate = 5e-05
-train_model = False
+train_model = True
 
 
 def main():
