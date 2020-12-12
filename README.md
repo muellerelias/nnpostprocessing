@@ -1,10 +1,12 @@
 # Using weather regime information in post-processing of country-aggregated medium-range weather forecasts
 
-The chaotic nature of the atmosphere limits predictability of local weather to a few days. Still, on longer time scales large-scale circulation patterns describe the variability of weather characteristics over larger regions. This provides a forecast opportunity on the so-called subseasonal time scale of several days to a few weeks (10-60 days).
-In this project we aim to elucidate if there is an additional value in using forecast information about large-scale circulation patterns in the neural network-based post processing model of Rasp and Lerch (2018).  
+
+This is the git-repo to my master thesis with the topic: "Using weather regime information in post-processing of country-aggregated medium-range weather forecast"
 
 ## Dataset
-
+The following data were used:
+- sub-seasonal to seasonal ensemble dataset from ECMWF. which are country-aggregated
+- Atlantic-European weather regime projection's, calculated with dhe sub-seasonal to seasonal dateset
 
 
 ## Requirements
@@ -19,5 +21,8 @@ pip3 install tensorflow properscoring matplotlib pandas keras-tuner
 ```
 
 ## Usage
-- Change the Path variable in dataset/read_csv_files.py
 - For training a model use ```bash python3 train.py```
+
+## Acknowledge
+- I thank Tilmann Gneiting for supervising this thesis and Sebastian Lerch for inspiring conversations and constructive remarks.
+- I thank Christan Grams' working group for the opportunity and support for this thesis. Especially Julian Quinting for his expert support and Dominik Bühler for the calculation of the data. 

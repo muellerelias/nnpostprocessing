@@ -1,10 +1,20 @@
+# go to parent directory
+import sys
+sys.path.append('..')
+
+import os
 import argparse
 import json
 import math
-import os
 from datetime import datetime
 
+import dataset.converter as converter
+import dataset.helper.crps as crps
+import dataset.shape as shape
+import helper as helpers
 import matplotlib.pyplot as plt
+import model.build_model as modelprovider
+import model.loss_functions as loss
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import utils
@@ -13,15 +23,8 @@ from tensorflow.keras.layers import (Activation, Concatenate, Dense, Embedding,
 from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras.optimizers import SGD, Adam, Adamax
 
-import dataset.converter as converter
-import dataset.helper.crps as crps
-import dataset.shape as shape
-import helper as helpers
-import model.build_model as modelprovider
-import model.loss_functions as loss
-
 """
- -  model 1 with all inputs
+model 1 with all inputs
 """
 
 expname = 'model-1'
