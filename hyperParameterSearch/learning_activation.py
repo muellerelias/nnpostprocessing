@@ -27,7 +27,6 @@ import model.loss_functions as loss
 
 
 def build_model(hp):
-    activation = 'linear'
 
     inp1 = Input(shape=(1,), name='Country_ID')
     model1 = Embedding(24, 23, name='Country_Embedding')(inp1)
@@ -46,21 +45,21 @@ def build_model(hp):
     nodes = 100
     numb = 3
     activation_1 = hp.Choice(
-        'activation_1', ['softmax', 'relu', 'selu', 'linear'])
+        'activation_1', ['relu','linear'])
     x = Dense(nodes, activation=activation_1,
               name="Combined_Hidden_Layer_1")(x)
 
     activation_2 = hp.Choice(
-        'activation_2', ['softmax', 'relu', 'selu', 'linear'])
+        'activation_2', ['relu','linear'])
     x = Dense(nodes, activation=activation_2,
               name="Combined_Hidden_Layer_2")(x)
 
     activation_3 = hp.Choice(
-        'activation_3', ['softmax', 'relu', 'selu', 'linear'])
+        'activation_3', ['relu', 'linear'])
     x = Dense(nodes, activation=activation,
               name="Combined_Hidden_Layer_3")(x)
 
-    x = Dense(2, activation=activation, name="Output_Layer")(x)
+    x = Dense(2, activation='linear', name="Output_Layer")(x)
 
 
     # returns the Model
@@ -112,10 +111,10 @@ tuner = MyTuner(
     hyperband_iterations=5,
     project_name='activation')
 
-#tuner.search(train_dataset,
-#             validation_data=valid_dataset,
-#             epochs=5,
-#             callbacks=[d])
+tuner.search(train_dataset,
+             validation_data=valid_dataset,
+             epochs=5,
+             callbacks=[d])
 
 tuner.results_summary(num_trials=3)
 
