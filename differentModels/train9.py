@@ -35,18 +35,20 @@ batchsize = 16
 epochs = 30
 initial_epochs = 0
 learning_rate = 5e-05
-train_model = True
+train_model = False
 
 def main():
     start = datetime.now()
+
     # get the data
     train_data = helpers.load_data(numpy_path, 'train_set.npy')
     valid_data = helpers.load_data(numpy_path, 'valid_set.npy')
     test_data = helpers.load_data(numpy_path, 'test_set.npy')
-    test_data_labels = test_data[:, 2]
-    test_data_labels = np.array([item[0] for item in test_data_labels])
-    test_data_countries = test_data[:, 0]
-    test_data_countries = np.array([item[0] for item in test_data_countries])
+
+    # filter the data
+    test_data_labels = np.array([item[0] for item in test_data[:, 2]])
+    test_data_countries = np.array([item[0] for item in test_data[:, 0]])
+    test_data_month = test_data[:, 5]
     
     # convert the data
     train_dataset, train_shape = convert_dataset(
@@ -56,10 +58,10 @@ def main():
     test_dataset = convert_dataset(
         test_data, batchsize=1000)
 
+    # build the model
     model = build_model(
         train_shape[1], train_shape[2])
 
-    # Loading the model
     # Print Model
     modelprovider.printModel(model, dir=os.path.join(
         logdir, expname), name=expname+".png")
@@ -72,26 +74,30 @@ def main():
     # Load model if exits
     checkpoint_dir = os.path.join(logdir, expname, 'checkpoints/')
 
-    # setup Callbacks
+    # setup tensorboard Callbacks
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=os.path.join(logdir, expname), update_freq='batch', histogram_freq=0, write_graph=True, write_images=False,
                                                           profile_batch=2)
 
-
-    # begin with training
+    # begin with training 10 times
     print('[INFO] Starting training')
     predictions = []
     for i in range(1, 11):
         print('Round number: '+str(i))
         model = build_model(
             train_shape[1], train_shape[2])
-        
+
+        # compile new model with new inital weights
         model.compile(loss=lossfn, optimizer=opt)
 
+        # checkpoint callbacks
+        # all checkpoints
         cp_callback_versuch = tf.keras.callbacks.ModelCheckpoint(
             os.path.join(checkpoint_dir, 'round-'+str(i)+'/')+"checkpoint_{epoch}", monitor='val_loss', save_weights_only=True, mode='min', verbose=0)
+        # best checkpoint
         cp_callback = tf.keras.callbacks.ModelCheckpoint(
             os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint'), monitor='val_loss', save_weights_only=True, mode='min', save_best_only=True, verbose=0)
 
+        # train the model
         if train_model:
             model.fit(
                 train_dataset,
@@ -103,16 +109,23 @@ def main():
                 validation_batch_size=1000,
                 callbacks=[tensorboard_callback, cp_callback, cp_callback_versuch],
             )
+
+        # load the best checkpoint of round i
         model.load_weights(os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint')).expect_partial()
         
         predictions.append(model.predict(
             test_dataset, batch_size=1000, verbose=0))
 
+    # convert to numpy array
     predictions = np.array(predictions)
     # Make sure std is positive
     predictions[:, :, 1] = np.abs(predictions[:, :, 1])
+    # calculate mean between the 10 results
     mean_predictions = np.mean(predictions, 0)
+    # calculate the score for each record in test set
+    test_crps = crps.norm_data(test_data_labels, mean_predictions)
 
+    # print the results with filters
     helpers.printIntCountries(test_data_labels, test_data_countries , mean_predictions)
     helpers.printHist(helpers.datasetPIT(mean_predictions, test_data_labels))
 
