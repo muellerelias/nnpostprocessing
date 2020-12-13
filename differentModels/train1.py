@@ -35,7 +35,7 @@ batchsize = 16
 epochs = 30
 initial_epochs = 0
 learning_rate = 5e-05
-train_model = True
+train_model = False
 
 
 def main():
@@ -78,6 +78,7 @@ def main():
     # setup tensorboard Callbacks
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=os.path.join(logdir, expname), update_freq='batch', histogram_freq=0, write_graph=True, write_images=False,
                                                           profile_batch=2)
+
     # begin with training 10 times
     print('[INFO] Starting training')
     predictions = []
@@ -90,7 +91,7 @@ def main():
         model.compile(loss=lossfn, optimizer=opt)
 
         # checkpoint callbacks
-        # all checkpints
+        # all checkpoints
         cp_callback_versuch = tf.keras.callbacks.ModelCheckpoint(
             os.path.join(checkpoint_dir, 'round-'+str(i)+'/')+"checkpoint_{epoch}", monitor='val_loss', save_weights_only=True, mode='min', verbose=0)
         # best checkpoint
