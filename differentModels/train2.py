@@ -109,6 +109,8 @@ def main():
                 validation_batch_size=1000,
                 callbacks=[tensorboard_callback, cp_callback, cp_callback_versuch],
             )
+        
+        # load the best checkpoint of round i
         model.load_weights(os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint')).expect_partial()
         
         predictions.append(model.predict(
