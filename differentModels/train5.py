@@ -35,7 +35,7 @@ batchsize = 16
 epochs = 30
 initial_epochs = 0
 learning_rate = 5e-05
-train_model = False
+train_model = False 
 
 
 def main():
