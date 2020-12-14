@@ -1,3 +1,7 @@
+# go to parent directory
+import sys
+sys.path.append('..')
+
 import argparse
 import json
 import os
@@ -23,11 +27,44 @@ import model.loss_functions as loss
 Feature importance 
 """
 
+"""
+expname and log dir should be an mordel 1 with all input
+
+Pass the function "convert_dataset_feature_importance" s as you want it to be permuted. 
+At the moment there are examples in it. 
+
+input 1 : (shape:    1) is the country id
+input 21: (shape:    1) is the date value
+input 22: (shape:   14) the first 7 are the regime mean and the last the std
+input 3: (shape: 2,19) the first row contains the NWPs mean and the second the std
+"""
+
 expname = 'model-1'
-numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/15days/vorverarbeitetRegime/'
-logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/15days/'
+numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/10days/vorverarbeitetRegime/'
+logdir = '/home/elias/Nextcloud/1.Masterarbeit/Tests/10days/'
 
 
+def convert_dataset_feature_importance(data):
+    input1, input21, input22, input3, label = data_to_numpy(data)
+    # for country
+    np.random.shuffle(input1)
+    # for date
+    np.random.shuffle(input21)
+    # for regime as group 
+    np.random.shuffle(22)
+    # for NWPs
+    np.random.shuffle(23)
+
+    input2 = np.concatenate((input21, input22), axis=1)
+    input3 = np.array(input3)
+
+    dataset_input = tf.data.Dataset.from_tensor_slices(
+        (input1, input2, input3))
+    dataset_label = tf.data.Dataset.from_tensor_slices(label)
+
+    dataset = tf.data.Dataset.zip((dataset_input, dataset_label))
+    dataset = dataset.batch(1000)
+    return dataset
 def main():
     start = datetime.now()
     # get the data
@@ -41,19 +78,19 @@ def main():
     test_dataset = convert_dataset(
         test_data, batchsize=1000)
 
-    # Load model if exits
+    # checkpoint dir
     checkpoint_dir = os.path.join(logdir, expname, 'checkpoints/')
-    # begin with training
-    print('[INFO] Starting training')
-    #for index in range(19):
+
+    print('[INFO] Starting feature importance')
+
     predictions = []
     predictions_feature = []
     test_dataset_feature = convert_dataset_feature_importance(
-        test_data, mode="regime", index=1)
+        test_data)
 
     for i in range(1, 11):
         #print('Round number: '+str(i))
-        model = build_model(
+        model = modelprovider.build_multi_input_model(
             (15,), (2, 19))
 
         model.compile(loss=loss.crps_cost_function, optimizer=Adam())
@@ -79,13 +116,11 @@ def main():
     test_crps = crps.norm_data(test_data_labels, mean_predictions)
     test_crps_feature = crps.norm_data(
         test_data_labels, mean_predictions_feature)
-    #print(round(test_crps_feature.mean(), 2))
-    #print(round(test_crps.mean(), 2))
+    print(round(test_crps_feature.mean(), 2))
+    print(round(test_crps.mean(), 2))
     test_score = round((1-test_crps_feature.mean()/test_crps.mean())*100, 2)
     print(test_crps_feature.mean())
-    result = '& \SI{'+str(test_score)+'}{\percent} '
 
-    print(result)
     print(datetime.now()-start)
 
 
@@ -139,42 +174,7 @@ def convert_dataset(data, batchsize=None,  shuffle=None, shape=False):
         return dataset
 
 
-def convert_dataset_feature_importance(data, mode,index=0):
-    input1, input21, input22, input3, label = data_to_numpy(data)
-    if mode == "country":
-        np.random.shuffle(input1)
-    elif mode == "date":
-        np.random.shuffle(input21)
-    elif mode == "regime":
-        """input223 =[]
-        input224 =[]
-        for e in input22:
-            matrix = np.array([e[:7],e[7:]])
-            input223.append(matrix)
-        input223 = np.array(input223)
-        #for a in range(7):
-        np.random.shuffle(input223[:,:,index])
-        for b in input223:
-            input224.append(np.concatenate((b[0],b[1])))
-        input22 = np.array(input224)"""
-        np.random.shuffle(input22)
-    elif mode == "ensemble":
-        #np.random.shuffle(input3[:,:, index])
-        #np.random.shuffle(input3[:,:, index][:,0])
-        np.random.shuffle(input3[:,:, index][:,1])
-    else:
-        raise NameError('The mode is not right. ')
 
-    input2 = np.concatenate((input21, input22), axis=1)
-    input3 = np.array(input3)
-
-    dataset_input = tf.data.Dataset.from_tensor_slices(
-        (input1, input2, input3))
-    dataset_label = tf.data.Dataset.from_tensor_slices(label)
-
-    dataset = tf.data.Dataset.zip((dataset_input, dataset_label))
-    dataset = dataset.batch(1000)
-    return dataset
 
 
 def data_to_numpy(data):
