@@ -38,9 +38,7 @@ def main():
     print(('all', all_score))
     for i in range(1,13):
         filter = test_data_month==i
-        #filter = np.logical_and(test_data_month==i, test_data_countries==8)
         filter_data  = test_data[filter]
-        #print(len(filter_data))
         if len(filter_data)>0:
             item = (i, round(np.array(filter_data[:,3]).mean() , 2 )) 
         else:
@@ -57,40 +55,12 @@ def inference(data, countryid=None):
         data = np.array(data_filterd)
 
     crps_list = []
-    crps_norm = []
     for item in data:
-        #input1 = np.array([item[0][0]])[np.newaxis, :]
-        #input2 = item[0][2:][np.newaxis, :]
-        temp = item[1][:,16]
-        calc = crps.norm(
-            item[2][0], temp)
-        crps_norm.append(calc)
         crps_list.append(item[3])
 
     crps_mean = np.array(crps_list).mean(axis=0)
-    crps_norm_mean = np.array(crps_norm).mean(axis=0)
 
-    #return (round(crps_mean,2),crps_norm_mean)
     return round(crps_mean,2)
 
 if __name__ == "__main__":
     main()
-
-
-"""
-
-('all', (1.96, 281.44798306178114))
-(1, 2.02)
-(2, 1.69)
-(3, 1.53)
-(4, 1.73)
-(5, 1.99)
-(6, 2.24)
-(7, 2.3)
-(8, 2.27)
-(9, 2.08)
-(10, 1.75)
-(11, 1.78)
-(12, 2.18)
-
-"""

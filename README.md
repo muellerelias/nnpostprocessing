@@ -26,11 +26,11 @@ pip3 install tensorflow properscoring matplotlib pandas keras-tuner
 - For training the model with all inputs, edit and execute [train.sh](/train.sh)
 - The directory [hyperParameterSearch](/hyperParameterSearch) contains different Hyper-Parameter search files
 - The directory [scipts](/scipts) contains different single script files:
-  - climatology
-  - ensemble CRPS
-  - feature
-  - PITHist
-  - test_CPRS
+  - The script [climatology](/scipts/climatology.py) calculates the climatology
+  - The script [ensemble CRPS](/scripts/ensemble_CRPS.py) returns the ensemble CRPS of the data sets
+  - The script [feature](/scripts/feature.py) computes the feature importance
+  - The script [PITHist](/scripts/PITHist.py) calculates the PIT histograms of example in Section 2.2
+  - The script [test CPRS](/scripts/test_CPRS.py) returns the ensemble CRPS of test set filterd after month and countries
 
 
 ## Acknowledgement
