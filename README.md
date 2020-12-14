@@ -30,7 +30,7 @@ pip3 install tensorflow properscoring matplotlib pandas keras-tuner
   - The script [ensemble CRPS](/scripts/ensemble_CRPS.py) returns the ensemble CRPS of the data sets
   - The script [feature](/scripts/feature.py) computes the feature importance
   - The script [PITHist](/scripts/PITHist.py) calculates the PIT histograms of example in Section 2.2
-  - The script [test CPRS](/scripts/test_CPRS.py) returns the ensemble CRPS of test set filterd after month and countries
+  - The script [test CRPS](/scripts/test_CRPS.py) returns the ensemble CRPS of test set filterd after month and countries
 
 
 ## Acknowledgement
