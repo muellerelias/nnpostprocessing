@@ -45,6 +45,7 @@ def crps_cost_function(y_true, y_pred):
     return K.mean(crps)
 
 
+# Version in which negative values of the standard deviation are sanctioned with the addition of an error of 10
 def crps_cost_function_positiv(y_true, y_pred):
     bool = K.less(y_pred[:, 1], 0)
     result = crps_cost_function(y_true, y_pred)
