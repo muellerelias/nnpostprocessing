@@ -23,6 +23,15 @@ pip3 install tensorflow properscoring matplotlib pandas keras-tuner
 ## Usage
 - To convert a data set consisting of CSV files into a Numpy Array, which is used in training. Please modify and execute the script [build_np_array](build_np_array.sh). 
 - The directory [differentModels](/differentModels) contains 10 different Python files for training the 10 models shown in Subsection 4.3 of my master thesis.
+- For training the model with all inputs, edit and execute [train.sh](/train.sh)
+- The directory [hyperParameterSearch](/hyperParameterSearch) contains different Hyper-Parameter search files
+- The directory [scipts](/scipts) contains different single script files:
+-- climatology
+-- ensemble CRPS
+-- feature
+-- PITHist
+-- test_CPRS
+
 
 ## Acknowledgement
 I was privileged to write a very interesting thesis, for which I would like to thank two groups who made this thesis possible:
