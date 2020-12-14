@@ -8,5 +8,4 @@ python3 train.py \
     --batch_size 1 \
     --epochs 30 \
     --initial_epochs 0 \
-    --learning_rate 0.040714615519777314 \
-    --model multi
+    --learning_rate 0.040714615519777314 

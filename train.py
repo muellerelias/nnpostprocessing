@@ -40,10 +40,6 @@ parser.add_argument("--epochs", dest="epochs", type=int,
 parser.add_argument("--initial_epochs", dest="initialepochs", type=int,
                     help="initial epoch count of the experiment", default='0')
 
-parser.add_argument("--model", dest="modeltype",
-                    choices=['emp', 'single', 'multi'])
-
-
 args = parser.parse_args()
 
 
@@ -53,12 +49,11 @@ def main(args):
     train_data = helpers.load_data(args.numpy_path, 'train_set.npy')
     valid_data = helpers.load_data(args.numpy_path, 'valid_set.npy')
     test_data = helpers.load_data(args.numpy_path, 'test_set.npy')
-    test_data_labels = test_data[:, 2]
-    test_data_labels = np.array([item[0] for item in test_data_labels])
-    test_data_countries = test_data[:, 0]
-    test_data_countries = np.array([item[0] for item in test_data_countries])
-    
-    test_data_feature_importance = np.random.shuffle(test_data[:,0])
+
+    # filter the data
+    test_data_labels = np.array([item[0] for item in test_data[:, 2]])
+    test_data_countries = np.array([item[0] for item in test_data[:, 0]])
+    test_data_month = test_data[:, 5]
 
     # convert the data
     train_dataset, train_shape = converter.convert_numpy_to_multi_input_dataset(
@@ -68,10 +63,10 @@ def main(args):
     test_dataset = converter.convert_numpy_to_multi_input_dataset(
         test_data, batchsize=1000)
 
+    # build the model
     model = modelprovider.build_multi_input_model(
         train_shape[1], train_shape[2])
 
-    # Loading the model
     # Print Model
     modelprovider.printModel(model, dir=os.path.join(
         args.logdir, args.name), name=args.name+".png")
@@ -84,12 +79,7 @@ def main(args):
     # Load model if exits
     checkpoint_dir = os.path.join(args.logdir, args.name, 'checkpoints/')
 
-    # setup Callbacks
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=os.path.join(args.logdir, args.name), update_freq='batch', histogram_freq=0, write_graph=True, write_images=False,
-                                                          profile_batch=2)
-
-
-    # begin with training
+    # begin with training 10 times
     print('[INFO] Starting training')
     predictions = []
     for i in range(1, 11):
@@ -112,54 +102,27 @@ def main(args):
             verbose=1,
             validation_data=valid_dataset,
             validation_batch_size=1000,
-            callbacks=[tensorboard_callback, cp_callback, cp_callback_versuch],
+            callbacks=[cp_callback, cp_callback_versuch],
         )
         model.load_weights(os.path.join(checkpoint_dir, 'round-'+str(i)+'/checkpoint'))
         
         predictions.append(model.predict(
             test_dataset, batch_size=1000, verbose=0))
 
+    # convert to numpy array
     predictions = np.array(predictions)
     # Make sure std is positive
     predictions[:, :, 1] = np.abs(predictions[:, :, 1])
+    # calculate mean between the 10 results
     mean_predictions = np.mean(predictions, 0)
-    test_crps = crps.norm_data(test_data_labels, mean_predictions)
-    #print_country(mean_predictions, test_data_countries)
-    ger_data = []
-    swe_data = []
-    spa_data = []
-    uk_data  = []
-    rou_data = []
-    for i in range(len(test_data_countries)):
-        if test_data_countries[i]==8:
-            ger_data.append(test_crps[i])
-        if test_data_countries[i]==16:
-            swe_data.append(test_crps[i])
-        if test_data_countries[i]==2:
-            spa_data.append(test_crps[i])
-        if test_data_countries[i]==5:
-            uk_data.append(test_crps[i])
-        if test_data_countries[i]==20:
-            rou_data.append(test_crps[i])
 
-    ger_score =  round(np.array(ger_data).mean() , 2 )
-    swe_score =  round(np.array(swe_data).mean() , 2 )
-    spa_score =  round(np.array(spa_data).mean() , 2 )
-    uk_score  =  round(np.array(uk_data).mean()  , 2 )
-    rou_score =  round(np.array(rou_data).mean() , 2 )
-    test_score = round(test_crps.mean()          , 2 )
+    # print the results with filters
+    helpers.printIntCountries(test_data_labels, test_data_countries, mean_predictions)
+    helpers.printHist(helpers.datasetPIT(mean_predictions, test_data_labels))
+    helpers.printIntMonth(test_data_labels, test_data_month, mean_predictions)
 
-    
-    print(f'All test score: {test_score}')
-    print(f'Ger test score: {ger_score}')
-    print(f'SWE test score: {swe_score}')
-    print(f'SPA test score: {spa_score}')
-    print(f' UK test score: {uk_score}')
-    print(f'ROU test score: {rou_score}')
-
-
-
-
+    # save the results
+    np.save(os.path.join(args.logdir, args.expname, 'prediction'), predictions)
     print(datetime.now()-start)
 
 if __name__ == "__main__":

@@ -74,11 +74,7 @@ def main():
 
     # checkdir path
     checkpoint_dir = os.path.join(logdir, expname, 'checkpoints/')
-
-    # setup tensorboard Callbacks
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=os.path.join(logdir, expname), update_freq='batch', histogram_freq=0, write_graph=True, write_images=False,
-                                                          profile_batch=2)
-                                                          
+                                                         
     # begin with training 10 times
     print('[INFO] Starting training')
     predictions = []
@@ -107,7 +103,7 @@ def main():
                 verbose=1,
                 validation_data=valid_dataset,
                 validation_batch_size=1000,
-                callbacks=[tensorboard_callback, cp_callback, cp_callback_versuch],
+                callbacks=[cp_callback, cp_callback_versuch],
             )
         
         # load the best checkpoint of round i
