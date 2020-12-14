@@ -7,6 +7,10 @@ import numpy as np
 import tensorflow as tf
 
 
+"""
+referenz: https://github.com/slerch/ppnn/blob/master/nn_postprocessing/nn_src/losses.py
+"""
+
 def crps_cost_function(y_true, y_pred):
     """Compute the CRPS cost function for a normal distribution defined by
     the mean and standard deviation.
@@ -42,10 +46,6 @@ def crps_cost_function(y_true, y_pred):
 
 
 def crps_cost_function_positiv(y_true, y_pred):
-    #tf.print(y_pred[:, 1])
     bool = K.less(y_pred[:, 1], 0)
-    #tf.print(bool)
     result = crps_cost_function(y_true, y_pred)
-    #tf.print(result)
-    #tf.print(result+K.cast(bool, dtype="float32")*10)
     return result+K.cast(bool, dtype="float32")*10
