@@ -43,7 +43,6 @@ def build_model(hp):
 
     # add the hiddden layers
     nodes = 100
-    numb = 3
     activation_1 = hp.Choice(
         'activation_1', ['relu','linear'])
     x = Dense(nodes, activation=activation_1,
@@ -56,7 +55,7 @@ def build_model(hp):
 
     activation_3 = hp.Choice(
         'activation_3', ['relu', 'linear'])
-    x = Dense(nodes, activation=activation,
+    x = Dense(nodes, activation=activation_3,
               name="Combined_Hidden_Layer_3")(x)
 
     x = Dense(2, activation='linear', name="Output_Layer")(x)

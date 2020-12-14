@@ -22,16 +22,16 @@ parser.add_argument("--np_dir", dest="np_dir", metavar="FILE",
                     help="folder where to store the numpy arrays")
 
 
-parser.add_argument("--horzion", dest="horzion", required=True,
+parser.add_argument("--horzion", dest="forecast_horzion", required=True,
                     help="forecast horizon: 10days or 15days", type=str)
 
 args = parser.parse_args()
 
 
 def main(args):
-    if args.horizon =='10days':
+    if args.forecast_horzion =='10days':
         fileglob = glob.glob(os.path.join(args.dataset_dir, 'ecmwf_*_240.csv'))
-    elif args.horizon =='15days':
+    elif args.forecast_horzion =='15days':
         fileglob = glob.glob(os.path.join(args.dataset_dir, 'ecmwf_*_360.csv'))
     else:
         raise Exception("Wrong forecast horizon")
