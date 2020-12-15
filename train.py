@@ -122,7 +122,7 @@ def main(args):
     helpers.printIntMonth(test_data_labels, test_data_month, mean_predictions)
 
     # save the results
-    np.save(os.path.join(args.logdir, args.expname, 'prediction'), predictions)
+    np.save(os.path.join(args.logdir, args.name, 'prediction'), predictions)
     print(datetime.now()-start)
 
 if __name__ == "__main__":

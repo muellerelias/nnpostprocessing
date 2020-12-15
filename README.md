@@ -1,7 +1,6 @@
-# Using weather regime information in post-processing of country-aggregated medium-range weather forecasts
+# Using Weather Regime Information in Statistical Post-Processing of Sub-Seasonal Ensemble Forecasts
 
-
-This is the git-repo to my master thesis with the topic: "Using weather regime information in post-processing of country-aggregated medium-range weather forecast"
+This is the git-repo to my master thesis with the topic: "Using Weather Regime Information in Statistical Post-Processing of Sub-Seasonal Ensemble Forecasts"
 
 ## Dataset
 The following data are used:

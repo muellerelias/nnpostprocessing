@@ -63,8 +63,8 @@ def main():
         train_shape[1], train_shape[2])
 
     # Print Model
-    modelprovider.printModel(model, dir=os.path.join(
-        logdir, expname), name=expname+".png")
+    # modelprovider.printModel(model, dir=os.path.join(
+    #     logdir, expname), name=expname+".png")
 
     # compiling the model
     lossfn = loss.crps_cost_function

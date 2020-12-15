@@ -59,8 +59,8 @@ def main():
         test_data, batchsize=1000)
 
     # build the model
-    model = build_model(
-        train_shape[1], train_shape[2])
+    # model = build_model(
+    #     train_shape[1], train_shape[2])
 
     # Print Model
     modelprovider.printModel(model, dir=os.path.join(

@@ -30,13 +30,13 @@ import model.loss_functions as loss
 """
 
 expname = 'name'
-numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/10days/vorverarbeitetRegime/'
+numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/15days/vorverarbeitetRegime/'
 
 
 def build_model(hp):
-
+    emb  = hp.Choice('Embedding_size', [1, 2, 11, 22])
     inp1 = Input(shape=(1,), name='Country_ID')
-    model1 = Embedding(23, 22, name='Country_Embedding')(inp1)
+    model1 = Embedding(23, emb, name='Country_Embedding')(inp1)
     model1 = Flatten()(model1)
 
     inp2 = Input(shape=(15,), name="Date_and_Regimes")
@@ -49,31 +49,18 @@ def build_model(hp):
     x = Concatenate(axis=1)([model1, inp2, model3])
 
     # add the hiddden layers
-    nodes = 100
-    activation_1 = hp.Choice(
-        'activation_1', ['relu','linear'])
-    x = Dense(nodes, activation=activation_1,
-              name="Combined_Hidden_Layer_1")(x)
-
-    activation_2 = hp.Choice(
-        'activation_2', ['relu','linear'])
-    x = Dense(nodes, activation=activation_2,
-              name="Combined_Hidden_Layer_2")(x)
-
-    activation_3 = hp.Choice(
-        'activation_3', ['relu', 'linear'])
-    x = Dense(nodes, activation=activation_3,
-              name="Combined_Hidden_Layer_3")(x)
-
-    x = Dense(2, activation='linear', name="Output_Layer")(x)
-
+    x = Dense(100, activation='linear' , name="Combined_Hidden_Layer_1")(x)
+    x = Dense(100, activation='relu'   , name="Combined_Hidden_Layer_2")(x)
+    x = Dense(100, activation='relu'   , name="Combined_Hidden_Layer_3")(x)
+    x = Dense(  2, activation='linear' , name="Output_Layer")(x)
 
     # returns the Model
     model = Model([inp1, inp2, inp3], outputs=x)
     lossfn = loss.crps_cost_function
 
-    opt = Adam(hp.Float('learning_rate', 1e-8, 0.1,
-                        default=0.002, sampling='log'), amsgrad=True)
+    #opt = Adam(hp.Float('learning_rate', 1e-8, 0.1, default=0.001, sampling='log'), amsgrad=True)
+    lr = hp.Choice('learning_rate', [0.01, 0.001, 0.0001, 1e-05, 0.05, 0.005, 0.0005, 5e-05])
+    opt = Adam(lr, amsgrad=True)
     model.compile(loss=lossfn, optimizer=opt)
     return model
 
@@ -87,7 +74,8 @@ class MyTuner(kt.Hyperband):
     def run_trial(self, trial, *args, **kwargs):
         # You can add additional HyperParameters for preprocessing and custom training loops
         # via overriding `run_trial`
-        kwargs['batch_size'] = trial.hyperparameters.Choice('batch_size', [8,16,32, 64, 128, 256, 512, 1024])
+        kwargs['batch_size'] = trial.hyperparameters.Choice(
+            'batch_size', [8,16,32, 64, 128, 256, 512, 1024], default=64)
         list(args)
         args1 = args[0].batch(kwargs['batch_size'])
         tuple(args1)
@@ -123,7 +111,7 @@ tuner.search(train_dataset,
              epochs=100,
              callbacks=[tf.keras.callbacks.EarlyStopping('val_loss', patience=10)])
 
-tuner.results_summary(num_trials=3)
+tuner.results_summary(num_trials=1)
 
 end = datetime.now()
 print(end-start)

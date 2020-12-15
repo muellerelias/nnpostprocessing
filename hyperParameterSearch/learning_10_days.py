@@ -1,3 +1,7 @@
+# go to parent directory
+import sys
+sys.path.append('..')
+
 import argparse
 import json
 import os
@@ -30,7 +34,7 @@ numpy_path = '/home/elias/Nextcloud/1.Masterarbeit/Daten/10days/vorverarbeitetRe
 
 
 def build_model(hp):
-    emb  = hp.hp.Choice('Embedding_size' [1, 2, 11, 22])
+    emb  = hp.Choice('Embedding_size', [1, 2, 11, 22])
     inp1 = Input(shape=(1,), name='Country_ID')
     model1 = Embedding(23, emb, name='Country_Embedding')(inp1)
     model1 = Flatten()(model1)
@@ -94,13 +98,13 @@ valid_dataset = converter.convert_numpy_to_multi_input_dataset(
     valid_data, batchsize=1000, shuffle=100)
 
 
-tuner = kt.Hyperband(
+tuner = MyTuner(
     build_model,
     objective='val_loss',
     max_epochs=30,
     factor = 2,    
     hyperband_iterations=1000,
-    project_name='expname')
+    project_name=expname)
 
 tuner.search(train_dataset,
              validation_data=valid_dataset,
